@@ -27,7 +27,7 @@ WUPS_PLUGIN_LICENSE("ISC");
 WUPS_ALLOW_KERNEL();
 
 char original_url[] = "discovery.olv.nintendo.net/v1/endpoint";
-char new_url[] =      "heyquark.com/miiverse.xml\0\0\0\0";
+char new_url[] =      "discovery.olv.pretendo.cc/v1/endpoint";
 _Static_assert(sizeof(original_url) > sizeof(new_url),
                "new_url too long! Must be less than 38chars.");
 
