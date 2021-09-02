@@ -1,4 +1,5 @@
-/*  Copyright 2019 Ash Logan "quarktheawesome" <ash@heyquark.com>
+/*  Copyright 2021 Pretendo Network contributors <pretendo.network>
+    Copyright 2019 Ash Logan "quarktheawesome" <ash@heyquark.com>
     Copyright 2019 Maschell
 
     Permission to use, copy, modify, and/or distribute this software for any purpose with or without fee is hereby granted, provided that the above copyright notice and this permission notice appear in all copies.
@@ -18,10 +19,10 @@
     Mandatory plugin information.
     If not set correctly, the loader will refuse to use the plugin.
 **/
-WUPS_PLUGIN_NAME("MiiversePlugin");
-WUPS_PLUGIN_DESCRIPTION("AAAAAA");
-WUPS_PLUGIN_VERSION("v1.0");
-WUPS_PLUGIN_AUTHOR("quarktheawesome");
+WUPS_PLUGIN_NAME("Inkay");
+WUPS_PLUGIN_DESCRIPTION("In-game patches for Juxtaposition");
+WUPS_PLUGIN_VERSION("v0.1");
+WUPS_PLUGIN_AUTHOR("Pretendo contributors");
 WUPS_PLUGIN_LICENSE("ISC");
 
 WUPS_ALLOW_KERNEL();
@@ -39,7 +40,7 @@ ON_APPLICATION_START(args){
     log_init();
 
     if (!args.kernel_access) {
-        DEBUG_FUNCTION_LINE("MiiversePlugin: No kernel access!\n");
+        DEBUG_FUNCTION_LINE("Inkay: No kernel access!\n");
         return;
     }
 
@@ -63,7 +64,7 @@ ON_APPLICATION_START(args){
 }
 
 ON_APPLICATION_ENDING(){
-    DEBUG_FUNCTION_LINE("MiiversePlugin: shutting down...\n");
+    DEBUG_FUNCTION_LINE("Inkay: shutting down...\n");
     OSDynLoad_Release(olv_handle);
 }
 
