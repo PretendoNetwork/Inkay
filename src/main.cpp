@@ -9,10 +9,14 @@
 
 #include <stdio.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <wups.h>
-#include <nsysnet/socket.h>
 #include <nsysnet/nssl.h>
+#include <coreinit/cache.h>
 #include <coreinit/dynload.h>
+#include <coreinit/memory.h>
+#include <coreinit/memorymap.h>
+#include <coreinit/memexpheap.h>
 #include <utils/logger.h>
 
 /**
@@ -25,17 +29,78 @@ WUPS_PLUGIN_VERSION("v0.1");
 WUPS_PLUGIN_AUTHOR("Pretendo contributors");
 WUPS_PLUGIN_LICENSE("ISC");
 
+#ifdef OLD_WUPS
 WUPS_ALLOW_KERNEL();
+void KernelCopyData(uint32_t addr, uint32_t src, uint32_t len) {
+    void* bouncebuf = malloc(len);
+    memcpy(bouncebuf, (void*)src, len);
+    WUPS_KernelCopyDataFunction(addr, (uint32_t)bouncebuf, len);
+    DCInvalidateRange((void*)addr, len); //ask me how I know
+    free(bouncebuf);
+}
+#warning OLD
+#else
+#include <kernel/kernel.h>
+#endif
 
-char original_url[] = "discovery.olv.nintendo.net/v1/endpoint";
-char new_url[] =      "discovery.olv.pretendo.cc/v1/endpoint";
+//#ifdef OLD_WUPS
+extern "C" {
+OSDynLoad_Error
+OSDynLoad_IsModuleLoaded(char const *name,
+                         OSDynLoad_Module *outModule);
+}
+//#endif
+
+const char original_url[] = "discovery.olv.nintendo.net/v1/endpoint";
+const char new_url[] =      "discovery.olv.pretendo.cc/v1/endpoint";
 _Static_assert(sizeof(original_url) > sizeof(new_url),
                "new_url too long! Must be less than 38chars.");
 
 // We'll keep a handle to nn_olv, just to ensure it doesn't get unloaded
 static OSDynLoad_Module olv_handle;
 
-ON_APPLICATION_START(args){
+#ifndef OLD_WUPS
+INITIALIZE_PLUGIN() {
+    WHBLogUdpInit();
+}
+DEINITIALIZE_PLUGIN() {
+    WHBLogUdpDeinit();
+}
+#endif
+
+bool checkForOlvLibs() {
+    OSDynLoad_Module olv_handle = 0;
+    OSDynLoad_Error dret;
+
+    dret = OSDynLoad_IsModuleLoaded("nn_olv", &olv_handle);
+    if (dret == OS_DYNLOAD_OK && olv_handle != 0) {
+        return true;
+    }
+
+    dret = OSDynLoad_IsModuleLoaded("nn_olv2", &olv_handle);
+    if (dret == OS_DYNLOAD_OK && olv_handle != 0) {
+        return true;
+    }
+
+    return false;
+}
+
+bool replace(uint32_t start, uint32_t size, const char* original_val, size_t original_val_sz, const char* new_val, size_t new_val_sz) {
+    for (uint32_t addr = start; addr < start + size - original_val_sz; addr++) {
+        int ret = memcmp(original_val, (void*)addr, original_val_sz);
+        if (ret == 0) {
+            DEBUG_FUNCTION_LINE("found str @%08x: %s", addr, (const char*)addr);
+            KernelCopyData(OSEffectiveToPhysical(addr), OSEffectiveToPhysical((uint32_t)new_val), new_val_sz);
+            DEBUG_FUNCTION_LINE("new str   @%08x: %s", addr, (const char*)addr);
+            return true;
+        }
+    }
+
+    return false;
+}
+
+#ifdef OLD_WUPS
+ON_APPLICATION_START(args) {
     socket_lib_init();
     log_init();
 
@@ -43,27 +108,38 @@ ON_APPLICATION_START(args){
         DEBUG_FUNCTION_LINE("Inkay: No kernel access!\n");
         return;
     }
+#else
+ON_APPLICATION_START() {
+    WHBLogUdpInit();
+#endif
+
+    DEBUG_FUNCTION_LINE("Inkay: hewwo!\n");
+
+    auto olvLoaded = checkForOlvLibs();
+
+    if (!olvLoaded) {
+        DEBUG_FUNCTION_LINE("Inkay: no olv, quitting for now\n");
+        return;
+    }
 
     OSDynLoad_Acquire("nn_olv", &olv_handle);
+    DEBUG_FUNCTION_LINE("Inkay: olv! %08x\n", olv_handle);
 
     //wish there was a better way than "blow through MEM2"
-    //TODO use OSGetMemBounds or w/e
-    for (uint32_t addr = 0x10000000; addr < 0x20000000; addr += 4) {
-        int ret = memcmp(original_url, (void*)addr, sizeof(original_url));
-        if (ret == 0) {
-            DEBUG_FUNCTION_LINE("Found string at %08X\n", addr);
-            DEBUG_FUNCTION_LINE("string: %s\n", (char*)addr);
-            for (uint j = 0; j < sizeof(new_url); j += 4) {
-                uint32_t val = *(uint32_t*)(new_url + j);
-                WUPS_KernelWrite((void*)(addr + j), val);
-            }
-            DEBUG_FUNCTION_LINE("string: %s\n", (char*)addr);
-            return;
-        }
+    uint32_t base_addr, size;
+    if(OSGetMemBound(OS_MEM2, &base_addr, &size)) {
+        DEBUG_FUNCTION_LINE("Inkay: OSGetMemBound failed!");
+        return;
     }
+
+    replace(base_addr, size, original_url, sizeof(original_url), new_url, sizeof(new_url));
 }
 
-ON_APPLICATION_ENDING(){
+#ifdef OLD_WUPS
+ON_APPLICATION_ENDING() {
+#else
+ON_APPLICATION_ENDS() {
+#endif
     DEBUG_FUNCTION_LINE("Inkay: shutting down...\n");
     OSDynLoad_Release(olv_handle);
 }
