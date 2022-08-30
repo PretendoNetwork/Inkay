@@ -1,10 +1,15 @@
-/*  Copyright 2021 Pretendo Network contributors <pretendo.network>
-    Copyright 2019 Ash Logan "quarktheawesome" <ash@heyquark.com>
+/*  Copyright 2022 Pretendo Network contributors <pretendo.network>
+    Copyright 2022 Ash Logan <ash@heyquark.com>
     Copyright 2019 Maschell
 
-    Permission to use, copy, modify, and/or distribute this software for any purpose with or without fee is hereby granted, provided that the above copyright notice and this permission notice appear in all copies.
+    Permission to use, copy, modify, and/or distribute this software for any purpose with or without fee is hereby
+    granted, provided that the above copyright notice and this permission notice appear in all copies.
 
-    THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
+    IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+    INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER
+    IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+    PERFORMANCE OF THIS SOFTWARE.
 */
 
 #include <stdio.h>
@@ -29,19 +34,7 @@ WUPS_PLUGIN_VERSION("v0.1");
 WUPS_PLUGIN_AUTHOR("Pretendo contributors");
 WUPS_PLUGIN_LICENSE("ISC");
 
-#ifdef OLD_WUPS
-WUPS_ALLOW_KERNEL();
-void KernelCopyData(uint32_t addr, uint32_t src, uint32_t len) {
-    void* bouncebuf = malloc(len);
-    memcpy(bouncebuf, (void*)src, len);
-    WUPS_KernelCopyDataFunction(addr, (uint32_t)bouncebuf, len);
-    DCInvalidateRange((void*)addr, len); //ask me how I know
-    free(bouncebuf);
-}
-#warning OLD
-#else
 #include <kernel/kernel.h>
-#endif
 
 //#ifdef OLD_WUPS
 extern "C" {
@@ -99,19 +92,8 @@ bool replace(uint32_t start, uint32_t size, const char* original_val, size_t ori
     return false;
 }
 
-#ifdef OLD_WUPS
-ON_APPLICATION_START(args) {
-    socket_lib_init();
-    log_init();
-
-    if (!args.kernel_access) {
-        DEBUG_FUNCTION_LINE("Inkay: No kernel access!\n");
-        return;
-    }
-#else
 ON_APPLICATION_START() {
     WHBLogUdpInit();
-#endif
 
     DEBUG_FUNCTION_LINE("Inkay: hewwo!\n");
 
@@ -135,11 +117,7 @@ ON_APPLICATION_START() {
     replace(base_addr, size, original_url, sizeof(original_url), new_url, sizeof(new_url));
 }
 
-#ifdef OLD_WUPS
-ON_APPLICATION_ENDING() {
-#else
 ON_APPLICATION_ENDS() {
-#endif
     DEBUG_FUNCTION_LINE("Inkay: shutting down...\n");
     OSDynLoad_Release(olv_handle);
 }

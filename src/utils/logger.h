@@ -4,13 +4,6 @@
 extern "C" {
 #endif
 
-#ifdef OLD_WUPS
-
-#include <nsysnet/socket.h>
-#include_next <utils/logger.h>
-
-#else //if !OLD_WUPS
-
 #include <string.h>
 #include <whb/log.h>
 #include <whb/log_udp.h>
@@ -29,8 +22,6 @@ extern "C" {
 #define DEBUG_FUNCTION_LINE_WRITE(FMT, ARGS...)do { \
     WHBLogWritef("[%23s]%30s@L%04d: " FMT "",__FILENAME__,__FUNCTION__, __LINE__, ## ARGS); \
     } while (0);
-
-#endif //!OLD_WUPS
 
 #ifdef __cplusplus
 }
