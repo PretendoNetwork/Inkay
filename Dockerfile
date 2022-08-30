@@ -1,7 +1,7 @@
-FROM wiiuenv/devkitppc:20210414
+FROM wiiuenv/devkitppc:20220806
 
-COPY --from=wiiuenv/libkernel:20210407 /artifacts $DEVKITPRO
-COPY --from=wiiuenv/wiiupluginsystem:20210417 /artifacts $DEVKITPRO
+COPY --from=wiiuenv/libkernel:20220724 /artifacts $DEVKITPRO
+COPY --from=wiiuenv/wiiupluginsystem:20220826 /artifacts $DEVKITPRO
 
 WORKDIR /app
 CMD make -f Makefile -j$(nproc)
