@@ -1,2 +1,4 @@
+.vscode/
+.idea/
 /build
 *.elf
