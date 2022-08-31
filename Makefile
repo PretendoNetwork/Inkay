@@ -40,13 +40,13 @@ LDFLAGS	=	-g $(ARCH) $(RPXSPECS) -Wl,-Map,$(notdir $*.map)
 
 LDFLAGS	+=	-T$(WUMS_ROOT)/share/libkernel.ld $(WUPSSPECS)
 
-LIBS	:= -lwups -lkernel -lwut
+LIBS	:= -lwups -lmocha -lkernel -lwut
 
 #-------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level
 # containing include and lib
 #-------------------------------------------------------------------------------
-LIBDIRS	:= $(PORTLIBS) $(WUMS_ROOT) $(WUPS_ROOT) $(WUT_ROOT)
+LIBDIRS	:= $(PORTLIBS) $(WUMS_ROOT) $(WUPS_ROOT) $(WUT_ROOT) $(WUT_ROOT)/usr
 
 #-------------------------------------------------------------------------------
 # no real need to edit anything past this point unless you need to add additional
