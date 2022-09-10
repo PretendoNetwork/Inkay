@@ -16,6 +16,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <wups.h>
+#include <wups/config/WUPSConfigItemBoolean.h>
 #include <nsysnet/nssl.h>
 #include <coreinit/cache.h>
 #include <coreinit/dynload.h>
@@ -23,6 +24,8 @@
 #include <coreinit/memory.h>
 #include <coreinit/memorymap.h>
 #include <coreinit/memexpheap.h>
+#include <coreinit/launch.h>
+#include <sysapp/launch.h>
 #include "wut_extra.h"
 #include <utils/logger.h>
 #include "url_patches.h"
@@ -32,10 +35,15 @@
     If not set correctly, the loader will refuse to use the plugin.
 **/
 WUPS_PLUGIN_NAME("Inkay");
-WUPS_PLUGIN_DESCRIPTION("In-game patches for Juxtaposition");
-WUPS_PLUGIN_VERSION("v0.1");
+WUPS_PLUGIN_DESCRIPTION("Pretendo Network Patcher");
+WUPS_PLUGIN_VERSION("v2.1");
 WUPS_PLUGIN_AUTHOR("Pretendo contributors");
 WUPS_PLUGIN_LICENSE("ISC");
+
+WUPS_USE_STORAGE("inkay");
+
+bool skipPatches = false;
+bool prevSkipValue = false;
 
 #include <kernel/kernel.h>
 #include <mocha/mocha.h>
@@ -85,6 +93,31 @@ static bool is555(MCP_SystemVersion version) {
 
 INITIALIZE_PLUGIN() {
     WHBLogUdpInit();
+
+    WUPSStorageError storageRes = WUPS_OpenStorage();
+    if (storageRes != WUPS_STORAGE_ERROR_SUCCESS) {
+        DEBUG_FUNCTION_LINE("Failed to open storage %s (%d)", WUPS_GetStorageStatusStr(storageRes), storageRes);
+    }
+    else {
+        // Try to get value from storage
+        if ((storageRes = WUPS_GetBool(nullptr, "skipPatches", &skipPatches)) == WUPS_STORAGE_ERROR_NOT_FOUND) {
+            // Add the value to the storage if it's missing.
+            if (WUPS_StoreBool(nullptr, "skipPatches", skipPatches) != WUPS_STORAGE_ERROR_SUCCESS) {
+                DEBUG_FUNCTION_LINE("Failed to store bool");
+            }
+        }
+        else if (storageRes != WUPS_STORAGE_ERROR_SUCCESS) {
+            DEBUG_FUNCTION_LINE("Failed to get bool %s (%d)", WUPS_GetStorageStatusStr(storageRes), storageRes);
+        }
+
+        prevSkipValue = skipPatches;
+
+        // Close storage
+        if (WUPS_CloseStorage() != WUPS_STORAGE_ERROR_SUCCESS) {
+            DEBUG_FUNCTION_LINE("Failed to close storage");
+        }
+    }
+
     auto res = Mocha_InitLibrary();
 
     if (res != MOCHA_RESULT_SUCCESS) {
@@ -106,21 +139,74 @@ INITIALIZE_PLUGIN() {
         os_version.major, os_version.minor, os_version.patch, os_version.region
     );
 
-    if (is555(os_version)) {
-        Mocha_IOSUKernelWrite32(0xE1019F78, 0xE3A00001); // mov r0, #1
-    } else {
-        Mocha_IOSUKernelWrite32(0xE1019E84, 0xE3A00001); // mov r0, #1
+    if (!skipPatches) {
+        if (is555(os_version)) {
+            Mocha_IOSUKernelWrite32(0xE1019F78, 0xE3A00001); // mov r0, #1
+        }
+        else {
+            Mocha_IOSUKernelWrite32(0xE1019E84, 0xE3A00001); // mov r0, #1
+        }
+
+        for (const auto& patch : url_patches) {
+            write_string(patch.address, patch.url);
+        }
+
+        DEBUG_FUNCTION_LINE("Pretendo URL and NoSSL patches applied successfully.");
+    }
+    else {
+        DEBUG_FUNCTION_LINE("Pretendo URL and NoSSL patches skipped.");
     }
 
-    for (const auto& patch : url_patches) {
-        write_string(patch.address, patch.url);
-    }
 
-    DEBUG_FUNCTION_LINE("Pretendo URL and NoSSL patches applied successfully.")
+    MCP_Close(mcp);
 }
 DEINITIALIZE_PLUGIN() {
     WHBLogUdpDeinit();
-    Mocha_DeinitLibrary();
+    Mocha_DeInitLibrary();
+}
+
+void skipPatchesChanged(ConfigItemBoolean* item, bool newValue) {
+    DEBUG_FUNCTION_LINE("New value in skipPatchesChanged: %d", newValue);
+    skipPatches = newValue;
+    // If the value has changed, we store it in the storage.
+    WUPS_StoreInt(nullptr, "skipPatches", skipPatches);
+}
+
+WUPS_GET_CONFIG() {
+    // We open the storage so we can persist the configuration the user did.
+    if (WUPS_OpenStorage() != WUPS_STORAGE_ERROR_SUCCESS) {
+        DEBUG_FUNCTION_LINE("Failed to open storage");
+        return 0;
+    }
+
+    WUPSConfigHandle config;
+    WUPSConfig_CreateHandled(&config, "Inkay");
+
+    WUPSConfigCategoryHandle cat;
+    WUPSConfig_AddCategoryByNameHandled(config, "Patching", &cat);
+
+    WUPSConfigItemBoolean_AddToCategoryHandled(config, cat, "skipPatches", "Skip Pretendo Network patches", skipPatches, &skipPatchesChanged);
+
+    return config;
+}
+
+bool isRelaunching = false;
+
+WUPS_CONFIG_CLOSED() {
+    // Save all changes
+    if (WUPS_CloseStorage() != WUPS_STORAGE_ERROR_SUCCESS) {
+        DEBUG_FUNCTION_LINE("Failed to close storage");
+    }
+
+    if (prevSkipValue != skipPatches) {
+        if (!isRelaunching) {
+            // Need to reload the console so the patches reset
+            OSForceFullRelaunch();
+            SYSLaunchMenu();
+            isRelaunching = true;
+        }
+    }
+    prevSkipValue = skipPatches;
 }
 
 bool checkForOlvLibs() {
@@ -166,17 +252,23 @@ ON_APPLICATION_START() {
         return;
     }
 
-    OSDynLoad_Acquire("nn_olv", &olv_handle);
-    DEBUG_FUNCTION_LINE("Inkay: olv! %08x\n", olv_handle);
+    if (!skipPatches) {
+        OSDynLoad_Acquire("nn_olv", &olv_handle);
+        DEBUG_FUNCTION_LINE("Inkay: olv! %08x\n", olv_handle);
 
-    //wish there was a better way than "blow through MEM2"
-    uint32_t base_addr, size;
-    if(OSGetMemBound(OS_MEM2, &base_addr, &size)) {
-        DEBUG_FUNCTION_LINE("Inkay: OSGetMemBound failed!");
-        return;
+        //wish there was a better way than "blow through MEM2"
+        uint32_t base_addr, size;
+        if (OSGetMemBound(OS_MEM2, &base_addr, &size)) {
+            DEBUG_FUNCTION_LINE("Inkay: OSGetMemBound failed!");
+            return;
+        }
+
+        replace(base_addr, size, original_url, sizeof(original_url), new_url, sizeof(new_url));
+    }
+    else {
+        DEBUG_FUNCTION_LINE("Inkay: Miiverse patches skipped.");
     }
 
-    replace(base_addr, size, original_url, sizeof(original_url), new_url, sizeof(new_url));
 }
 
 ON_APPLICATION_ENDS() {
