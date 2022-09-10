@@ -35,8 +35,8 @@
     If not set correctly, the loader will refuse to use the plugin.
 **/
 WUPS_PLUGIN_NAME("Inkay");
-WUPS_PLUGIN_DESCRIPTION("Pretendo Aroma Patcher");
-WUPS_PLUGIN_VERSION("v2.0");
+WUPS_PLUGIN_DESCRIPTION("Pretendo Network Patcher");
+WUPS_PLUGIN_VERSION("v2.1");
 WUPS_PLUGIN_AUTHOR("Pretendo contributors");
 WUPS_PLUGIN_LICENSE("ISC");
 
