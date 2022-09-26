@@ -29,6 +29,7 @@
 #include "wut_extra.h"
 #include <utils/logger.h>
 #include "url_patches.h"
+#include "patcher/ingame.h"
 
 /**
     Mandatory plugin information.
@@ -47,22 +48,6 @@ bool prevSkipValue = false;
 
 #include <kernel/kernel.h>
 #include <mocha/mocha.h>
-
-//#ifdef OLD_WUPS
-extern "C" {
-OSDynLoad_Error
-OSDynLoad_IsModuleLoaded(char const *name,
-                         OSDynLoad_Module *outModule);
-}
-//#endif
-
-const char original_url[] = "discovery.olv.nintendo.net/v1/endpoint";
-const char new_url[] =      "discovery.olv.pretendo.cc/v1/endpoint";
-_Static_assert(sizeof(original_url) > sizeof(new_url),
-               "new_url too long! Must be less than 38chars.");
-
-// We'll keep a handle to nn_olv, just to ensure it doesn't get unloaded
-static OSDynLoad_Module olv_handle;
 
 //thanks @Gary#4139 :p
 static void write_string(uint32_t addr, const char* str)
@@ -209,69 +194,14 @@ WUPS_CONFIG_CLOSED() {
     prevSkipValue = skipPatches;
 }
 
-bool checkForOlvLibs() {
-    OSDynLoad_Module olv_handle = 0;
-    OSDynLoad_Error dret;
-
-    dret = OSDynLoad_IsModuleLoaded("nn_olv", &olv_handle);
-    if (dret == OS_DYNLOAD_OK && olv_handle != 0) {
-        return true;
-    }
-
-    dret = OSDynLoad_IsModuleLoaded("nn_olv2", &olv_handle);
-    if (dret == OS_DYNLOAD_OK && olv_handle != 0) {
-        return true;
-    }
-
-    return false;
-}
-
-bool replace(uint32_t start, uint32_t size, const char* original_val, size_t original_val_sz, const char* new_val, size_t new_val_sz) {
-    for (uint32_t addr = start; addr < start + size - original_val_sz; addr++) {
-        int ret = memcmp(original_val, (void*)addr, original_val_sz);
-        if (ret == 0) {
-            DEBUG_FUNCTION_LINE("found str @%08x: %s", addr, (const char*)addr);
-            KernelCopyData(OSEffectiveToPhysical(addr), OSEffectiveToPhysical((uint32_t)new_val), new_val_sz);
-            DEBUG_FUNCTION_LINE("new str   @%08x: %s", addr, (const char*)addr);
-            return true;
-        }
-    }
-
-    return false;
-}
-
 ON_APPLICATION_START() {
     WHBLogUdpInit();
 
     DEBUG_FUNCTION_LINE("Inkay: hewwo!\n");
 
-    auto olvLoaded = checkForOlvLibs();
-
-    if (!olvLoaded) {
-        DEBUG_FUNCTION_LINE("Inkay: no olv, quitting for now\n");
-        return;
-    }
-
-    if (!skipPatches) {
-        OSDynLoad_Acquire("nn_olv", &olv_handle);
-        DEBUG_FUNCTION_LINE("Inkay: olv! %08x\n", olv_handle);
-
-        //wish there was a better way than "blow through MEM2"
-        uint32_t base_addr, size;
-        if (OSGetMemBound(OS_MEM2, &base_addr, &size)) {
-            DEBUG_FUNCTION_LINE("Inkay: OSGetMemBound failed!");
-            return;
-        }
-
-        replace(base_addr, size, original_url, sizeof(original_url), new_url, sizeof(new_url));
-    }
-    else {
-        DEBUG_FUNCTION_LINE("Inkay: Miiverse patches skipped.");
-    }
-
+    if (!skipPatches) RunPatcher();
 }
 
 ON_APPLICATION_ENDS() {
     DEBUG_FUNCTION_LINE("Inkay: shutting down...\n");
-    OSDynLoad_Release(olv_handle);
 }
