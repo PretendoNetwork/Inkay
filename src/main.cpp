@@ -29,6 +29,14 @@
 #include "wut_extra.h"
 #include <utils/logger.h>
 #include "url_patches.h"
+#include <coreinit/filesystem.h>
+#include <cstring>
+#include <string>
+#include <sdutils/sdutils.h>
+#include <nn/erreula/erreula_cpp.h>
+#include <nn/act/client_cpp.h>
+
+#include <curl/curl.h>
 
 /**
     Mandatory plugin information.
@@ -58,6 +66,19 @@ OSDynLoad_IsModuleLoaded(char const *name,
 
 const char original_url[] = "discovery.olv.nintendo.net/v1/endpoint";
 const char new_url[] =      "discovery.olv.pretendo.cc/v1/endpoint";
+const char wave_original[] = {
+	0x68, 0x74, 0x74, 0x70, 0x73, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x2E, 0x6E, 0x69, 0x6E, 0x74, 0x65, 0x6E, 0x64,
+	0x6F, 0x2E, 0x6E, 0x65, 0x74
+};
+const char wave_new[] = {
+	0x68, 0x74, 0x74, 0x70, 0x73, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x2E, 0x70, 0x72, 0x65, 0x74, 0x65, 0x6E, 0x64,
+	0x6F, 0x2E, 0x63, 0x63, 0x00
+};
+
+char16_t* output;
+
 _Static_assert(sizeof(original_url) > sizeof(new_url),
                "new_url too long! Must be less than 38chars.");
 
@@ -87,9 +108,47 @@ static void write_string(uint32_t addr, const char* str)
     }
 }
 
+static const int B64index[256] = { 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, 62, 63, 62, 62, 63, 52, 53, 54, 55,
+56, 57, 58, 59, 60, 61,  0,  0,  0,  0,  0,  0,  0,  0,  1,  2,  3,  4,  5,  6,
+7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25,  0,
+0,  0,  0, 63,  0, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
+41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51 };
+
+std::string b64decode(const void* data, const size_t len)
+{
+    unsigned char* p = (unsigned char*)data;
+    int pad = len > 0 && (len % 4 || p[len - 1] == '=');
+    const size_t L = ((len + 3) / 4 - pad) * 4;
+    std::string str(L / 4 * 3 + pad, '\0');
+
+    for (size_t i = 0, j = 0; i < L; i += 4)
+    {
+        int n = B64index[p[i]] << 18 | B64index[p[i + 1]] << 12 | B64index[p[i + 2]] << 6 | B64index[p[i + 3]];
+        str[j++] = n >> 16;
+        str[j++] = n >> 8 & 0xFF;
+        str[j++] = n & 0xFF;
+    }
+    if (pad)
+    {
+        int n = B64index[p[L]] << 18 | B64index[p[L + 1]] << 12;
+        str[str.size() - 1] = n >> 16;
+
+        if (len > L + 2 && p[L + 2] != '=')
+        {
+            n |= B64index[p[L + 2]] << 6;
+            str.push_back(n >> 8 & 0xFF);
+        }
+    }
+    return str;
+}
+
 static bool is555(MCP_SystemVersion version) {
     return (version.major == 5) && (version.minor == 5) && (version.patch >= 5);
 }
+
+WUPS_USE_WUT_DEVOPTAB();
 
 INITIALIZE_PLUGIN() {
     WHBLogUdpInit();
@@ -240,6 +299,17 @@ bool replace(uint32_t start, uint32_t size, const char* original_val, size_t ori
     return false;
 }
 
+uint32_t find(uint32_t start, uint32_t size, const char* original_val, size_t original_val_sz) {
+    for (uint32_t addr = start; addr < start + size - original_val_sz; addr++) {
+        int ret = memcmp(original_val, (void*)addr, original_val_sz);
+        if (ret == 0) {
+            return addr;
+        }
+    }
+
+    return 0;
+}
+
 ON_APPLICATION_START() {
     WHBLogUdpInit();
 
@@ -275,3 +345,100 @@ ON_APPLICATION_ENDS() {
     DEBUG_FUNCTION_LINE("Inkay: shutting down...\n");
     OSDynLoad_Release(olv_handle);
 }
+
+DECL_FUNCTION(int, FSOpenFile, FSClient *client, FSCmdBlock *block, char *path, const char *mode, uint32_t *handle, int error) {
+    const char *initialOma   = "vol/content/initial.oma";
+
+    if (strcmp(initialOma, path) == 0) {
+        //below is a hacky (yet functional!) way to get Inkay to redirect URLs from the Miiverse applet
+        //we do it when loading this file since it should only load once, preventing massive lag spikes as it searches all of MEM2 xD
+        WHBLogUdpInit();
+
+        DEBUG_FUNCTION_LINE("Inkay: hewwo!\n");
+
+        auto olvLoaded = checkForOlvLibs();
+
+        if (!olvLoaded) {
+            DEBUG_FUNCTION_LINE("Inkay: no olv, quitting for now\n");
+        }else{
+            if (!skipPatches) {
+                OSDynLoad_Acquire("nn_olv", &olv_handle);
+                DEBUG_FUNCTION_LINE("Inkay: olv! %08x\n", olv_handle);
+
+                //wish there was a better way than "blow through MEM2"
+                uint32_t base_addr, size;
+                if (OSGetMemBound(OS_MEM2, &base_addr, &size)) {
+                    DEBUG_FUNCTION_LINE("Inkay: OSGetMemBound failed!");
+                }else{
+                    //We replace 2 times here.
+                    //The first is for nn_olv, the second Wave (the applet itself)
+                    replace(base_addr, size, original_url, sizeof(original_url), new_url, sizeof(new_url));
+                    replace(0x10000000, 0x40000000, wave_original, sizeof(wave_original), wave_new, sizeof(wave_new));
+                }
+            }
+            else {
+                DEBUG_FUNCTION_LINE("Inkay: Miiverse patches skipped.");
+            }
+        }
+    }
+    return real_FSOpenFile(client, block, path, mode, handle, error);
+}
+
+DECL_FUNCTION(FSStatus, FSReadFile, FSClient *client, FSCmdBlock *block, uint8_t *buffer, uint32_t size, uint32_t count, FSFileHandle handle, uint32_t unk1, uint32_t flags) {
+    FSStatus result = real_FSReadFile(client, block, buffer, size, count, handle, unk1, flags);
+    if(strstr((char*)buffer, "# rootca.pem") && strstr((char*)buffer, "4CE7Y259RF06alPvERck/VSyWmxzViHJbC2XpEKzJ2EFIWNt6ii8TxpvQtyYq1XT")){
+        memset(buffer, 0, size);
+        strcpy((char*)buffer, "-----BEGIN CERTIFICATE-----\nMIIDaTCCAlGgAwIBAgIQWWi/WdPuVr1BiNarQaD06TANBgkqhkiG9w0BAQsFADBG\nMQwwCgYDVQQLEwNQS0kxEzARBgNVBAoTCkthZXJ1IFRlYW0xCzAJBgNVBAYTAkdC\nMRQwEgYDVQQDEwtQS0NBIFogUm9vdDAgFw0yMTEwMDMxODIzMTlaGA8yMDUxMTAw\nMzE4MzMxOFowRjEMMAoGA1UECxMDUEtJMRMwEQYDVQQKEwpLYWVydSBUZWFtMQsw\nCQYDVQQGEwJHQjEUMBIGA1UEAxMLUEtDQSBaIFJvb3QwggEiMA0GCSqGSIb3DQEB\nAQUAA4IBDwAwggEKAoIBAQC5QC4VGxY9xeI6svqIPEd/nxJXQPFPRj3l1neu5xNC\n5Q6u4g5i0OYXBXR+u2CTHfzOeimr5Jvxb6jvGHKQWNVChGY0ncKhP9dkjIqQZruw\niLBcB8PUCYP3VMKprUD+aSheSRAdkTLYf2JiayedepTUHPYP1SkaLa6gYfoGBFgR\nK7pYSx5W4xTq4kBnn3Ua9CEfnoOSZPsL7OpYb7Xxnnzap3ro48RYtWLSOEeq0q1R\nUEtE84Vy+QnbCfM/TYeP+lkUZO3zTWkta5+cNEgFxX1ME68rImJsl6SAnvPpJjMf\nMudU3YSFOp5mLjkiWTuldYZPkwQLHWo+3j7NsHgBp/0dAgMBAAGjUTBPMAsGA1Ud\nDwQEAwIBhjAPBgNVHRMBAf8EBTADAQH/MB0GA1UdDgQWBBTS9mt1zZQoDkARVBBR\nEjHUg+r3mzAQBgkrBgEEAYI3FQEEAwIBADANBgkqhkiG9w0BAQsFAAOCAQEAix6C\nXdS6A2wfLmXlccGLHNv+ammx7lib3dA4/1n+pc9oIuB9No9JTzANmCMhHsY7cWyW\nyLgJP590tqfsAfP1IfIhwunIUACL1FnQnwxkJPIGjG2NGoQYy9/33geG2Ajn3gXk\n5GWtcDa/CJq/30nlrr9Fx1JQU+UxHEMHXwSKydBP89P2igRm7bHwcXQFdOVgkAyk\nONTsCq4BU3gt/dbItSN8010lFx4sbG366DP0/MtYjeHEFlX+hlUDwtIoCV8zqKVz\nwOgPI/hg6ZO0IR8Ifa65d12gxpKy+xMfiwLhNZQsR62h2hr1iCuaGtoTiXQvM/9S\nv3bMEooCcYmxZkoxqA==\n-----END CERTIFICATE-----");
+    }
+    
+    return result;
+}
+
+size_t writeFunction(void* ptr, size_t size, size_t nmemb, std::string* data) {
+    data->append((char*)ptr, size * nmemb);
+    return size * nmemb;
+}
+
+DECL_FUNCTION(uint32_t, ErrEulaAppearError__3RplFRCQ3_2nn7erreula9AppearArg, nn::erreula::AppearArg AppearArg) {
+    if (!skipPatches) {
+        if(AppearArg.errorArg.errorCode == 1022802){
+            auto curl = curl_easy_init();
+            if (curl) {
+                uint32_t pid = (uint32_t)(nn::act::GetPrincipalId());
+                std::string str = "http://192.168.0.93:8888/api/banreason?pid=";
+                str += std::to_string(pid);
+                curl_easy_setopt(curl, CURLOPT_URL, str.c_str());
+                curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1L);
+                curl_easy_setopt(curl, CURLOPT_USERAGENT, "Pretendo Inkay");
+                curl_easy_setopt(curl, CURLOPT_MAXREDIRS, 50L);
+                curl_easy_setopt(curl, CURLOPT_TCP_KEEPALIVE, 1L);
+                
+                std::string response_string;
+                std::string header_string;
+                curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeFunction);
+                curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response_string);
+                curl_easy_setopt(curl, CURLOPT_HEADERDATA, &header_string);
+                
+                char* url;
+                long response_code;
+                double elapsed;
+                curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
+                curl_easy_getinfo(curl, CURLINFO_TOTAL_TIME, &elapsed);
+                curl_easy_getinfo(curl, CURLINFO_EFFECTIVE_URL, &url);
+                
+                curl_easy_perform(curl);
+                curl_easy_cleanup(curl);
+                curl = NULL;
+                AppearArg.errorArg.errorType = nn::erreula::ErrorType::Message1Button;
+                AppearArg.errorArg.errorMessage = (char16_t*)b64decode((char*)response_string.c_str(), strlen(response_string.c_str())).c_str();
+            }
+        }
+    }
+    uint32_t result = real_ErrEulaAppearError__3RplFRCQ3_2nn7erreula9AppearArg(AppearArg);
+    output = 0;
+    return result;
+}
+
+WUPS_MUST_REPLACE(ErrEulaAppearError__3RplFRCQ3_2nn7erreula9AppearArg, WUPS_LOADER_LIBRARY_ERREULA, ErrEulaAppearError__3RplFRCQ3_2nn7erreula9AppearArg);
+WUPS_MUST_REPLACE_FOR_PROCESS(FSOpenFile, WUPS_LOADER_LIBRARY_COREINIT, FSOpenFile, WUPS_FP_TARGET_PROCESS_MIIVERSE);
+WUPS_MUST_REPLACE_FOR_PROCESS(FSReadFile, WUPS_LOADER_LIBRARY_COREINIT, FSReadFile, WUPS_FP_TARGET_PROCESS_MIIVERSE);
