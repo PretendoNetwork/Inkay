@@ -37,6 +37,9 @@
 #include <nn/act/client_cpp.h>
 
 #include <curl/curl.h>
+#include "ca_bin.h"
+
+#define ACT_URL "https://account.pretendo.cc/"
 
 /**
     Mandatory plugin information.
@@ -352,7 +355,7 @@ DECL_FUNCTION(int, FSOpenFile, FSClient *client, FSCmdBlock *block, char *path, 
     if (strcmp(initialOma, path) == 0) {
         //below is a hacky (yet functional!) way to get Inkay to redirect URLs from the Miiverse applet
         //we do it when loading this file since it should only load once, preventing massive lag spikes as it searches all of MEM2 xD
-        WHBLogUdpInit();
+        //WHBLogUdpInit();
 
         DEBUG_FUNCTION_LINE("Inkay: hewwo!\n");
 
@@ -388,7 +391,7 @@ DECL_FUNCTION(FSStatus, FSReadFile, FSClient *client, FSCmdBlock *block, uint8_t
     FSStatus result = real_FSReadFile(client, block, buffer, size, count, handle, unk1, flags);
     if(strstr((char*)buffer, "# rootca.pem") && strstr((char*)buffer, "4CE7Y259RF06alPvERck/VSyWmxzViHJbC2XpEKzJ2EFIWNt6ii8TxpvQtyYq1XT")){
         memset(buffer, 0, size);
-        strcpy((char*)buffer, "-----BEGIN CERTIFICATE-----\nMIIDaTCCAlGgAwIBAgIQWWi/WdPuVr1BiNarQaD06TANBgkqhkiG9w0BAQsFADBG\nMQwwCgYDVQQLEwNQS0kxEzARBgNVBAoTCkthZXJ1IFRlYW0xCzAJBgNVBAYTAkdC\nMRQwEgYDVQQDEwtQS0NBIFogUm9vdDAgFw0yMTEwMDMxODIzMTlaGA8yMDUxMTAw\nMzE4MzMxOFowRjEMMAoGA1UECxMDUEtJMRMwEQYDVQQKEwpLYWVydSBUZWFtMQsw\nCQYDVQQGEwJHQjEUMBIGA1UEAxMLUEtDQSBaIFJvb3QwggEiMA0GCSqGSIb3DQEB\nAQUAA4IBDwAwggEKAoIBAQC5QC4VGxY9xeI6svqIPEd/nxJXQPFPRj3l1neu5xNC\n5Q6u4g5i0OYXBXR+u2CTHfzOeimr5Jvxb6jvGHKQWNVChGY0ncKhP9dkjIqQZruw\niLBcB8PUCYP3VMKprUD+aSheSRAdkTLYf2JiayedepTUHPYP1SkaLa6gYfoGBFgR\nK7pYSx5W4xTq4kBnn3Ua9CEfnoOSZPsL7OpYb7Xxnnzap3ro48RYtWLSOEeq0q1R\nUEtE84Vy+QnbCfM/TYeP+lkUZO3zTWkta5+cNEgFxX1ME68rImJsl6SAnvPpJjMf\nMudU3YSFOp5mLjkiWTuldYZPkwQLHWo+3j7NsHgBp/0dAgMBAAGjUTBPMAsGA1Ud\nDwQEAwIBhjAPBgNVHRMBAf8EBTADAQH/MB0GA1UdDgQWBBTS9mt1zZQoDkARVBBR\nEjHUg+r3mzAQBgkrBgEEAYI3FQEEAwIBADANBgkqhkiG9w0BAQsFAAOCAQEAix6C\nXdS6A2wfLmXlccGLHNv+ammx7lib3dA4/1n+pc9oIuB9No9JTzANmCMhHsY7cWyW\nyLgJP590tqfsAfP1IfIhwunIUACL1FnQnwxkJPIGjG2NGoQYy9/33geG2Ajn3gXk\n5GWtcDa/CJq/30nlrr9Fx1JQU+UxHEMHXwSKydBP89P2igRm7bHwcXQFdOVgkAyk\nONTsCq4BU3gt/dbItSN8010lFx4sbG366DP0/MtYjeHEFlX+hlUDwtIoCV8zqKVz\nwOgPI/hg6ZO0IR8Ifa65d12gxpKy+xMfiwLhNZQsR62h2hr1iCuaGtoTiXQvM/9S\nv3bMEooCcYmxZkoxqA==\n-----END CERTIFICATE-----");
+        strcpy((char*)buffer, (const char*)ca_bin);
     }
     
     return result;
@@ -405,7 +408,8 @@ DECL_FUNCTION(uint32_t, ErrEulaAppearError__3RplFRCQ3_2nn7erreula9AppearArg, nn:
             auto curl = curl_easy_init();
             if (curl) {
                 uint32_t pid = (uint32_t)(nn::act::GetPrincipalId());
-                std::string str = "http://192.168.0.93:8888/api/banreason?pid=";
+                std::string str = ACT_URL;
+                str += "/api/banreason?pid=";
                 str += std::to_string(pid);
                 curl_easy_setopt(curl, CURLOPT_URL, str.c_str());
                 curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1L);
