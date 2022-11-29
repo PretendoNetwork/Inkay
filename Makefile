@@ -40,7 +40,7 @@ LDFLAGS	=	-g $(ARCH) $(RPXSPECS) -Wl,-Map,$(notdir $*.map)
 
 LDFLAGS	+=	-T$(WUMS_ROOT)/share/libkernel.ld $(WUPSSPECS)
 
-LIBS	:= -lwups -lmocha -lkernel -lsdutils -lcurl -lz -lmbedtls -lmbedcrypto -lmbedx509 -lwut
+LIBS	:= -lwups -lmocha -lkernel -lcurl -lz -lmbedtls -lmbedcrypto -lmbedx509 -lwut
 
 #-------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level

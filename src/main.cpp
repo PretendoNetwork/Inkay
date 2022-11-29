@@ -32,7 +32,6 @@
 #include <coreinit/filesystem.h>
 #include <cstring>
 #include <string>
-#include <sdutils/sdutils.h>
 #include <nn/erreula/erreula_cpp.h>
 #include <nn/act/client_cpp.h>
 
@@ -300,17 +299,6 @@ bool replace(uint32_t start, uint32_t size, const char* original_val, size_t ori
     }
 
     return false;
-}
-
-uint32_t find(uint32_t start, uint32_t size, const char* original_val, size_t original_val_sz) {
-    for (uint32_t addr = start; addr < start + size - original_val_sz; addr++) {
-        int ret = memcmp(original_val, (void*)addr, original_val_sz);
-        if (ret == 0) {
-            return addr;
-        }
-    }
-
-    return 0;
 }
 
 ON_APPLICATION_START() {
