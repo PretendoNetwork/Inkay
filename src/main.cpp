@@ -43,7 +43,7 @@ WUPS_PLUGIN_LICENSE("ISC");
 WUPS_USE_STORAGE("inkay");
 
 bool connect_to_network = true;
-bool prevSkipValue = false;
+bool prevConValue = true;
 
 #include <kernel/kernel.h>
 #include <mocha/mocha.h>
@@ -100,9 +100,9 @@ INITIALIZE_PLUGIN() {
     }
     else {
         // Try to get value from storage
-        if ((storageRes = WUPS_GetBool(nullptr, "skipPatches", &skipPatches)) == WUPS_STORAGE_ERROR_NOT_FOUND) {
+        if ((storageRes = WUPS_GetBool(nullptr, "connect_to_network", &connect_to_network)) == WUPS_STORAGE_ERROR_NOT_FOUND) {
             // Add the value to the storage if it's missing.
-            if (WUPS_StoreBool(nullptr, "skipPatches", skipPatches) != WUPS_STORAGE_ERROR_SUCCESS) {
+            if (WUPS_StoreBool(nullptr, "connect_to_network", connect_to_network) != WUPS_STORAGE_ERROR_SUCCESS) {
                 DEBUG_FUNCTION_LINE("Failed to store bool");
             }
         }
@@ -110,8 +110,7 @@ INITIALIZE_PLUGIN() {
             DEBUG_FUNCTION_LINE("Failed to get bool %s (%d)", WUPS_GetStorageStatusStr(storageRes), storageRes);
         }
 
-        prevSkipValue = skipPatches;
-
+        prevConValue = connect_to_network;
         // Close storage
         if (WUPS_CloseStorage() != WUPS_STORAGE_ERROR_SUCCESS) {
             DEBUG_FUNCTION_LINE("Failed to close storage");
@@ -139,7 +138,7 @@ INITIALIZE_PLUGIN() {
         os_version.major, os_version.minor, os_version.patch, os_version.region
     );
 
-    if (!skipPatches) {
+    if (connect_to_network) {
         if (is555(os_version)) {
             Mocha_IOSUKernelWrite32(0xE1019F78, 0xE3A00001); // mov r0, #1
         }
@@ -167,9 +166,9 @@ DEINITIALIZE_PLUGIN() {
 
 void skipPatchesChanged(ConfigItemBoolean* item, bool newValue) {
     DEBUG_FUNCTION_LINE("New value in skipPatchesChanged: %d", newValue);
-    skipPatches = newValue;
+    connect_to_network = newValue;
     // If the value has changed, we store it in the storage.
-    WUPS_StoreInt(nullptr, "skipPatches", skipPatches);
+    WUPS_StoreInt(nullptr, "connect_to_network", connect_to_network);
 }
 
 WUPS_GET_CONFIG() {
@@ -185,7 +184,7 @@ WUPS_GET_CONFIG() {
     WUPSConfigCategoryHandle cat;
     WUPSConfig_AddCategoryByNameHandled(config, "Patching", &cat);
 
-    WUPSConfigItemBoolean_AddToCategoryHandled(config, cat, "skipPatches", "Skip Pretendo Network patches", skipPatches, &skipPatchesChanged);
+    WUPSConfigItemBoolean_AddToCategoryHandled(config, cat, "connect_to_network", "Connect to the Pretendo network", connect_to_network, &skipPatchesChanged);
 
     return config;
 }
@@ -198,7 +197,7 @@ WUPS_CONFIG_CLOSED() {
         DEBUG_FUNCTION_LINE("Failed to close storage");
     }
 
-    if (prevSkipValue != skipPatches) {
+    if (prevConValue != connect_to_network) {
         if (!isRelaunching) {
             // Need to reload the console so the patches reset
             OSForceFullRelaunch();
@@ -206,7 +205,7 @@ WUPS_CONFIG_CLOSED() {
             isRelaunching = true;
         }
     }
-    prevSkipValue = skipPatches;
+    prevConvalue = connect_to_network;
 }
 
 bool checkForOlvLibs() {
@@ -252,7 +251,7 @@ ON_APPLICATION_START() {
         return;
     }
 
-    if (!skipPatches) {
+    if (connect_to_network) {
         OSDynLoad_Acquire("nn_olv", &olv_handle);
         DEBUG_FUNCTION_LINE("Inkay: olv! %08x\n", olv_handle);
 
