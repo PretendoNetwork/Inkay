@@ -42,7 +42,7 @@ WUPS_PLUGIN_LICENSE("ISC");
 
 WUPS_USE_STORAGE("inkay");
 
-bool skipPatches = false;
+bool connect_to_network = true;
 bool prevSkipValue = false;
 
 #include <kernel/kernel.h>
