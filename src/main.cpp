@@ -44,7 +44,7 @@ WUPS_USE_STORAGE("inkay");
 
 bool connect_to_network = true;
 bool prevConValue = true;
-
+bool skipPatches = false;
 #include <kernel/kernel.h>
 #include <mocha/mocha.h>
 
@@ -100,7 +100,7 @@ INITIALIZE_PLUGIN() {
     }
     else {
         // Try to get value from storage
-        if ((storageRes = WUPS_GetBool(nullptr, "connect_to_network", &connect_to_network)) == WUPS_STORAGE_ERROR_NOT_FOUND) {
+        if ((storageRes = WUPS_GetBool(nullptr, "skipPatches", &skipPatches)) == WUPS_STORAGE_ERROR_NOT_FOUND) {
             // Add the value to the storage if it's missing.
             if (WUPS_StoreBool(nullptr, "connect_to_network", connect_to_network) != WUPS_STORAGE_ERROR_SUCCESS) {
                 DEBUG_FUNCTION_LINE("Failed to store bool");
