@@ -130,11 +130,12 @@ INITIALIZE_PLUGIN() {
         for (const auto& patch : url_patches) {
             write_string(patch.address, patch.url);
         }
-
         DEBUG_FUNCTION_LINE("Pretendo URL and NoSSL patches applied successfully.");
+        StartNotificationThread("Using Pretendo Network");
     }
     else {
         DEBUG_FUNCTION_LINE("Pretendo URL and NoSSL patches skipped.");
+        StartNotificationThread("Using Nintendo Network");
     }
 
 
@@ -192,8 +193,6 @@ ON_APPLICATION_START() {
     if (Config::connect_to_network) {
         OSDynLoad_Acquire("nn_olv", &olv_handle);
         DEBUG_FUNCTION_LINE("Inkay: olv! %08x\n", olv_handle);
-        // Only display notification on Wii U Menu
-        StartNotificationThread("Connected to Pretendo Network");
 
         //wish there was a better way than "blow through MEM2"
         uint32_t base_addr, size;
@@ -206,7 +205,6 @@ ON_APPLICATION_START() {
     }
     else {
         DEBUG_FUNCTION_LINE("Inkay: Miiverse patches skipped.");
-        StartNotificationThread("Connected to Nintendo Network");
     }
 }
 
