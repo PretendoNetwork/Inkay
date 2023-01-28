@@ -23,10 +23,13 @@
 #include <coreinit/memory.h>
 #include <coreinit/memorymap.h>
 #include <coreinit/memexpheap.h>
+#include <notifications/notifications.h>
 #include "wut_extra.h"
 #include <utils/logger.h>
 #include "url_patches.h"
 #include "config.h"
+#include "Notification.h"
+
 
 /**
     Mandatory plugin information.
@@ -98,6 +101,10 @@ INITIALIZE_PLUGIN() {
         return;
     }
 
+    if (NotificationModule_InitLibrary() != NOTIFICATION_MODULE_RESULT_SUCCESS) {
+        DEBUG_FUNCTION_LINE("NotificationModule_InitLibrary failed");
+    }
+
     //get os version
     MCP_SystemVersion os_version;
     int mcp = MCP_Open();
@@ -109,7 +116,7 @@ INITIALIZE_PLUGIN() {
         };
     }
     DEBUG_FUNCTION_LINE("Running on %d.%d.%d%c",
-        os_version.major, os_version.minor, os_version.patch, os_version.region
+                        os_version.major, os_version.minor, os_version.patch, os_version.region
     );
 
     if (Config::connect_to_network) {
@@ -136,6 +143,7 @@ INITIALIZE_PLUGIN() {
 DEINITIALIZE_PLUGIN() {
     WHBLogUdpDeinit();
     Mocha_DeInitLibrary();
+    NotificationModule_DeInitLibrary();
 }
 
 bool checkForOlvLibs() {
@@ -184,6 +192,8 @@ ON_APPLICATION_START() {
     if (Config::connect_to_network) {
         OSDynLoad_Acquire("nn_olv", &olv_handle);
         DEBUG_FUNCTION_LINE("Inkay: olv! %08x\n", olv_handle);
+        // Only display notification on Wii U Menu
+        StartNotificationThread("Connected to Pretendo Network");
 
         //wish there was a better way than "blow through MEM2"
         uint32_t base_addr, size;
@@ -196,10 +206,12 @@ ON_APPLICATION_START() {
     }
     else {
         DEBUG_FUNCTION_LINE("Inkay: Miiverse patches skipped.");
+        StartNotificationThread("Connected to Nintendo Network");
     }
 }
 
 ON_APPLICATION_ENDS() {
     DEBUG_FUNCTION_LINE("Inkay: shutting down...\n");
+    StopNotificationThread();
     OSDynLoad_Release(olv_handle);
 }

@@ -1,0 +1,42 @@
+#pragma once
+#include <coreinit/cache.h>
+#include <coreinit/thread.h>
+#include <coreinit/title.h>
+#include <notifications/notification_defines.h>
+#include <notifications/notifications.h>
+#include <thread>
+#include <string>
+
+std::unique_ptr<std::thread> sShowHintThread;
+static bool sShutdownHintThread = false;
+static std::string notification = "";
+
+void ShowNotification() {
+    // Wait for notification module to be ready
+    bool isOverlayReady = false;
+    while (!sShutdownHintThread && NotificationModule_IsOverlayReady(&isOverlayReady) == NOTIFICATION_MODULE_RESULT_SUCCESS && !isOverlayReady)
+        OSSleepTicks(OSMillisecondsToTicks(16));
+    if (sShutdownHintThread || !isOverlayReady) return;
+    NotificationModuleStatus err = NotificationModule_SetDefaultValue(NOTIFICATION_MODULE_NOTIFICATION_TYPE_INFO, NOTIFICATION_MODULE_DEFAULT_OPTION_DURATION_BEFORE_FADE_OUT, 15.0f);
+    if(err != NOTIFICATION_MODULE_RESULT_SUCCESS) return;
+
+    NotificationModule_AddInfoNotification(notification.c_str());
+}
+
+void StartNotificationThread(const std::string& value) {
+    uint64_t titleID = OSGetTitleID();
+    if (titleID == 0x0005001010040000L || titleID == 0x0005001010040100L || titleID == 0x0005001010040200L) {
+        sShutdownHintThread = false;
+        notification = value;
+        sShowHintThread     = std::make_unique<std::thread>(ShowNotification);
+    }
+}
+
+void StopNotificationThread() {
+    if (sShowHintThread != nullptr) {
+        sShutdownHintThread = true;
+        OSMemoryBarrier();
+        sShowHintThread->join();
+        sShowHintThread.reset();
+    }
+}
