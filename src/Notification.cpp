@@ -6,11 +6,10 @@
 #include <notifications/notifications.h>
 #include <thread>
 
-std::unique_ptr<std::thread> sShowHintThread;
+static std::unique_ptr<std::thread> sShowHintThread;
 static bool sShutdownHintThread = false;
-static char * notification;
 
-void ShowNotification() {
+void ShowNotification(const char * notification) {
     // Wait for notification module to be ready
     bool isOverlayReady = false;
     while (!sShutdownHintThread && NotificationModule_IsOverlayReady(&isOverlayReady) == NOTIFICATION_MODULE_RESULT_SUCCESS && !isOverlayReady)
@@ -22,12 +21,11 @@ void ShowNotification() {
     NotificationModule_AddInfoNotification(notification);
 }
 
-void StartNotificationThread(char * value) {
+void StartNotificationThread(const char * value) {
     uint64_t titleID = OSGetTitleID();
     if (titleID == 0x0005001010040000L || titleID == 0x0005001010040100L || titleID == 0x0005001010040200L) {
         sShutdownHintThread = false;
-        notification = value;
-        sShowHintThread = std::make_unique<std::thread>(ShowNotification);
+        sShowHintThread = std::make_unique<std::thread>(ShowNotification, value);
     }
 }
 

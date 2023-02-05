@@ -1,7 +1,7 @@
 #pragma once
 
-void ShowNotification();
+void ShowNotification(const char * notification);
 
-void StartNotificationThread(char * value);
+void StartNotificationThread(const char * value);
 
 void StopNotificationThread();
