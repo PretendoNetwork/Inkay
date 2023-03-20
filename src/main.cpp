@@ -56,9 +56,6 @@ const char new_url[] =      "discovery.olv.pretendo.cc/v1/endpoint";
 _Static_assert(sizeof(original_url) > sizeof(new_url),
                "new_url too long! Must be less than 38chars.");
 
-// We'll keep a handle to nn_olv, just to ensure it doesn't get unloaded
-static OSDynLoad_Module olv_handle;
-
 //thanks @Gary#4139 :p
 static void write_string(uint32_t addr, const char* str)
 {
@@ -138,7 +135,7 @@ DEINITIALIZE_PLUGIN() {
     Mocha_DeInitLibrary();
 }
 
-bool checkForOlvLibs() {
+bool check_olv_libs() {
     OSDynLoad_Module olv_handle = 0;
     OSDynLoad_Error dret;
 
@@ -169,37 +166,46 @@ bool replace(uint32_t start, uint32_t size, const char* original_val, size_t ori
     return false;
 }
 
+void new_rpl_loaded(OSDynLoad_Module module, void* ctx, OSDynLoad_NotifyReason reason, OSDynLoad_NotifyData* rpl) {
+    if (!Config::connect_to_network) {
+        DEBUG_FUNCTION_LINE("Inkay: Miiverse patches skipped.");
+        return;
+    }
+
+    // Loaded olv?
+    if (reason != OS_DYNLOAD_NOTIFY_LOADED) return;
+    if (strcmp("nn_olv.rpl", rpl->name) != 0) {
+        DEBUG_FUNCTION_LINE("Inkay: Ignoring %s\n", rpl->name);
+        return;
+    }
+
+    replace(rpl->dataAddr, rpl->dataSize, original_url, sizeof(original_url), new_url, sizeof(new_url));
+}
+
 ON_APPLICATION_START() {
     WHBLogUdpInit();
 
     DEBUG_FUNCTION_LINE("Inkay: hewwo!\n");
 
-    auto olvLoaded = checkForOlvLibs();
+    OSDynLoad_AddNotifyCallback(&new_rpl_loaded, nullptr);
 
+    auto olvLoaded = check_olv_libs();
     if (!olvLoaded) {
         DEBUG_FUNCTION_LINE("Inkay: no olv, quitting for now\n");
         return;
     }
 
-    if (Config::connect_to_network) {
-        OSDynLoad_Acquire("nn_olv", &olv_handle);
-        DEBUG_FUNCTION_LINE("Inkay: olv! %08x\n", olv_handle);
-
-        //wish there was a better way than "blow through MEM2"
-        uint32_t base_addr, size;
-        if (OSGetMemBound(OS_MEM2, &base_addr, &size)) {
-            DEBUG_FUNCTION_LINE("Inkay: OSGetMemBound failed!");
-            return;
-        }
-
-        replace(base_addr, size, original_url, sizeof(original_url), new_url, sizeof(new_url));
-    }
-    else {
+    if (!Config::connect_to_network) {
         DEBUG_FUNCTION_LINE("Inkay: Miiverse patches skipped.");
+        return;
     }
-}
 
-ON_APPLICATION_ENDS() {
-    DEBUG_FUNCTION_LINE("Inkay: shutting down...\n");
-    OSDynLoad_Release(olv_handle);
+    //wish there was a better way than "blow through MEM2"
+    uint32_t base_addr, size;
+    if (OSGetMemBound(OS_MEM2, &base_addr, &size)) {
+        DEBUG_FUNCTION_LINE("Inkay: OSGetMemBound failed!");
+        return;
+    }
+
+    replace(base_addr, size, original_url, sizeof(original_url), new_url, sizeof(new_url));
 }
