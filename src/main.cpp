@@ -166,6 +166,13 @@ bool replace(uint32_t start, uint32_t size, const char* original_val, size_t ori
     return false;
 }
 
+#define OLV_RPL "nn_olv.rpl"
+bool path_is_olv(const char* path) {
+    auto path_len = strlen(path);
+    auto* path_suffix = path + path_len - (sizeof(OLV_RPL) - 1); //1 for null
+    return strcmp(path_suffix, OLV_RPL) == 0;
+}
+
 void new_rpl_loaded(OSDynLoad_Module module, void* ctx, OSDynLoad_NotifyReason reason, OSDynLoad_NotifyData* rpl) {
     if (!Config::connect_to_network) {
         DEBUG_FUNCTION_LINE("Inkay: Miiverse patches skipped.");
@@ -174,10 +181,7 @@ void new_rpl_loaded(OSDynLoad_Module module, void* ctx, OSDynLoad_NotifyReason r
 
     // Loaded olv?
     if (reason != OS_DYNLOAD_NOTIFY_LOADED) return;
-    if (strcmp("nn_olv.rpl", rpl->name) != 0) {
-        DEBUG_FUNCTION_LINE("Inkay: Ignoring %s\n", rpl->name);
-        return;
-    }
+    if (!path_is_olv(rpl->name)) return;
 
     replace(rpl->dataAddr, rpl->dataSize, original_url, sizeof(original_url), new_url, sizeof(new_url));
 }
