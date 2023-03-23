@@ -16,6 +16,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <wups.h>
+#include <optional>
 #include <nsysnet/nssl.h>
 #include <coreinit/cache.h>
 #include <coreinit/dynload.h>
@@ -30,6 +31,16 @@
 #include "config.h"
 #include "Notification.h"
 
+#include <coreinit/filesystem.h>
+#include <cstring>
+#include <string>
+#include <nn/erreula/erreula_cpp.h>
+#include <nn/act/client_cpp.h>
+
+#include <curl/curl.h>
+#include "ca_pem.h"
+
+#include <gx2/surface.h>
 
 /**
     Mandatory plugin information.
@@ -56,6 +67,41 @@ OSDynLoad_IsModuleLoaded(char const *name,
 
 const char original_url[] = "discovery.olv.nintendo.net/v1/endpoint";
 const char new_url[] =      "discovery.olv.pretendo.cc/v1/endpoint";
+const char wave_original[] = {
+	0x68, 0x74, 0x74, 0x70, 0x73, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x2E, 0x6E, 0x69, 0x6E, 0x74, 0x65, 0x6E, 0x64,
+	0x6F, 0x2E, 0x6E, 0x65, 0x74
+};
+const char wave_new[] = {
+	0x68, 0x74, 0x74, 0x70, 0x73, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x2E, 0x70, 0x72, 0x65, 0x74, 0x65, 0x6E, 0x64,
+	0x6F, 0x2E, 0x63, 0x63, 0x00
+};
+
+const char miiverse_green_highlight[] = {
+	0x82,0xff,0x05,0xff,0x82,0xff,0x05,0xff,0x1d,0xff,0x04,0xff,0x1d,0xff,0x04,0xff
+};
+
+const char juxt_purple_highlight[] = {
+	0x5d,0x4a,0x9a,0xff,0x5d,0x4a,0x9a,0xff,0x5d,0x4a,0x9a,0xff,0x5d,0x4a,0x9a,0xff 
+};
+
+const char miiverse_green_touch1[] = {
+	0x94,0xd9,0x2a,0x00,0x57,0xbd,0x12,0xff
+};
+
+const char juxt_purple_touch1[] = {
+	0x5d,0x4a,0x9a,0x00,0x5d,0x4a,0x9a,0xff
+};
+
+const char miiverse_green_touch2[] = {
+	0x57,0xbd,0x12,0x00,0x94,0xd9,0x2a,0xff
+};
+
+const char juxt_purple_touch2[] = {
+	0x5d,0x4a,0x9a,0x00,0x5d,0x4a,0x9a,0xff
+};
+
 _Static_assert(sizeof(original_url) > sizeof(new_url),
                "new_url too long! Must be less than 38chars.");
 
@@ -88,6 +134,7 @@ static bool is555(MCP_SystemVersion version) {
 
 INITIALIZE_PLUGIN() {
     WHBLogUdpInit();
+    WHBLogCafeInit();
 
     Config::Init();
 
@@ -195,6 +242,17 @@ void new_rpl_loaded(OSDynLoad_Module module, void* ctx, OSDynLoad_NotifyReason r
     replace(rpl->dataAddr, rpl->dataSize, original_url, sizeof(original_url), new_url, sizeof(new_url));
 }
 
+void replaceBulk(uint32_t start, uint32_t size, const char* original_val, size_t original_val_sz, const char* new_val, size_t new_val_sz) {
+    for (uint32_t addr = start; addr < start + size - original_val_sz; addr++) {
+        int ret = memcmp(original_val, (void*)addr, original_val_sz);
+        if (ret == 0) {
+            DEBUG_FUNCTION_LINE("found bulk @%08x", addr);
+            KernelCopyData(OSEffectiveToPhysical(addr), OSEffectiveToPhysical((uint32_t)new_val), new_val_sz);
+            DEBUG_FUNCTION_LINE("new bulk   @%08x", addr);
+        }
+    }
+}
+
 ON_APPLICATION_START() {
     WHBLogUdpInit();
 
@@ -227,3 +285,78 @@ ON_APPLICATION_ENDS() {
     DEBUG_FUNCTION_LINE("Inkay: shutting down...\n");
     StopNotificationThread();
 }
+
+static std::optional<FSFileHandle> rootca_pem_handle{};
+
+DECL_FUNCTION(int, FSOpenFile, FSClient *client, FSCmdBlock *block, char *path, const char *mode, uint32_t *handle, int error) {
+    const char *initialOma   = "vol/content/initial.oma";
+
+    if (!Config::connect_to_network) {
+        DEBUG_FUNCTION_LINE("Inkay: Miiverse patches skipped.");
+        return real_FSOpenFile(client, block, path, mode, handle, error);
+    }
+
+    if (strcmp(initialOma, path) == 0) {
+        //below is a hacky (yet functional!) way to get Inkay to redirect URLs from the Miiverse applet
+        //we do it when loading this file since it should only load once, preventing massive lag spikes as it searches all of MEM2 xD
+        //WHBLogUdpInit();
+
+        DEBUG_FUNCTION_LINE("Inkay: hewwo!\n");
+
+        auto olvLoaded = check_olv_libs();
+
+        if (!olvLoaded) {
+            DEBUG_FUNCTION_LINE("Inkay: no olv, quitting for now\n");
+        } else {
+            uint32_t base_addr, size;
+            if (OSGetMemBound(OS_MEM2, &base_addr, &size)) {
+                DEBUG_FUNCTION_LINE("Inkay: OSGetMemBound failed!");
+            } else {
+                //We replace 2 times here.
+                //The first is for nn_olv, the second Wave (the applet itself)
+                replace(base_addr, size, original_url, sizeof(original_url), new_url, sizeof(new_url));
+                replace(0x10000000, 0x10000000, wave_original, sizeof(wave_original), wave_new, sizeof(wave_new));
+            }
+        }
+    // Check for root CA file and take note of its handle
+    } else if (strcmp("vol/content/browser/rootca.pem", path) == 0) {
+        int ret = real_FSOpenFile(client, block, path, mode, handle, error);
+        rootca_pem_handle = *handle;
+        DEBUG_FUNCTION_LINE("Inkay: Found Miiverse CA, replacing...");
+        return ret;
+    }
+
+    return real_FSOpenFile(client, block, path, mode, handle, error);
+}
+
+DECL_FUNCTION(FSStatus, FSReadFile, FSClient *client, FSCmdBlock *block, uint8_t *buffer, uint32_t size, uint32_t count, FSFileHandle handle, uint32_t unk1, uint32_t flags) {
+    if (size != 1) {
+        DEBUG_FUNCTION_LINE("Inkay: Miiverse CA replacement failed!");
+    }
+
+    if (rootca_pem_handle && *rootca_pem_handle == handle) {
+        memset(buffer, 0, size);
+        strcpy((char*)buffer, (const char*)ca_pem);
+
+        //this can't be done above (in the FSOpenFile hook) since it's not loaded yet.
+        replaceBulk(0x10000000, 0x10000000, miiverse_green_highlight, sizeof(miiverse_green_highlight), juxt_purple_highlight, sizeof(juxt_purple_highlight));
+        replaceBulk(0x10000000, 0x10000000, miiverse_green_touch1, sizeof(miiverse_green_touch1), juxt_purple_touch1, sizeof(juxt_purple_touch1));
+        replaceBulk(0x10000000, 0x10000000, miiverse_green_touch2, sizeof(miiverse_green_touch2), juxt_purple_touch2, sizeof(juxt_purple_touch2));
+
+        return (FSStatus)count;
+    }
+    
+    return real_FSReadFile(client, block, buffer, size, count, handle, unk1, flags);
+}
+
+DECL_FUNCTION(FSStatus, FSCloseFile, FSClient * client, FSCmdBlock * block, FSFileHandle handle, FSErrorFlag errorMask) {
+    if (handle == rootca_pem_handle) {
+        rootca_pem_handle.reset();
+    }
+
+    return real_FSCloseFile(client, block, handle, errorMask);
+}
+
+WUPS_MUST_REPLACE_FOR_PROCESS(FSOpenFile, WUPS_LOADER_LIBRARY_COREINIT, FSOpenFile, WUPS_FP_TARGET_PROCESS_MIIVERSE);
+WUPS_MUST_REPLACE_FOR_PROCESS(FSReadFile, WUPS_LOADER_LIBRARY_COREINIT, FSReadFile, WUPS_FP_TARGET_PROCESS_MIIVERSE);
+WUPS_MUST_REPLACE_FOR_PROCESS(FSCloseFile, WUPS_LOADER_LIBRARY_COREINIT, FSCloseFile, WUPS_FP_TARGET_PROCESS_MIIVERSE);
