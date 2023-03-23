@@ -23,10 +23,13 @@
 #include <coreinit/memory.h>
 #include <coreinit/memorymap.h>
 #include <coreinit/memexpheap.h>
+#include <notifications/notifications.h>
 #include "wut_extra.h"
 #include <utils/logger.h>
 #include "url_patches.h"
 #include "config.h"
+#include "Notification.h"
+
 
 /**
     Mandatory plugin information.
@@ -95,6 +98,10 @@ INITIALIZE_PLUGIN() {
         return;
     }
 
+    if (NotificationModule_InitLibrary() != NOTIFICATION_MODULE_RESULT_SUCCESS) {
+        DEBUG_FUNCTION_LINE("NotificationModule_InitLibrary failed");
+    }
+
     //get os version
     MCP_SystemVersion os_version;
     int mcp = MCP_Open();
@@ -120,11 +127,12 @@ INITIALIZE_PLUGIN() {
         for (const auto& patch : url_patches) {
             write_string(patch.address, patch.url);
         }
-
         DEBUG_FUNCTION_LINE("Pretendo URL and NoSSL patches applied successfully.");
+        StartNotificationThread("Using Pretendo Network");
     }
     else {
         DEBUG_FUNCTION_LINE("Pretendo URL and NoSSL patches skipped.");
+        StartNotificationThread("Using Nintendo Network");
     }
 
 
@@ -133,6 +141,7 @@ INITIALIZE_PLUGIN() {
 DEINITIALIZE_PLUGIN() {
     WHBLogUdpDeinit();
     Mocha_DeInitLibrary();
+    NotificationModule_DeInitLibrary();
 }
 
 bool check_olv_libs() {
@@ -212,4 +221,9 @@ ON_APPLICATION_START() {
     }
 
     replace(base_addr, size, original_url, sizeof(original_url), new_url, sizeof(new_url));
+}
+
+ON_APPLICATION_ENDS() {
+    DEBUG_FUNCTION_LINE("Inkay: shutting down...\n");
+    StopNotificationThread();
 }
