@@ -57,14 +57,6 @@ WUPS_USE_STORAGE("inkay");
 #include <kernel/kernel.h>
 #include <mocha/mocha.h>
 
-//#ifdef OLD_WUPS
-extern "C" {
-OSDynLoad_Error
-OSDynLoad_IsModuleLoaded(char const *name,
-                         OSDynLoad_Module *outModule);
-}
-//#endif
-
 const char original_url[] = "discovery.olv.nintendo.net/v1/endpoint";
 const char new_url[] =      "discovery.olv.pretendo.cc/v1/endpoint";
 const char wave_original[] = {
