@@ -255,6 +255,7 @@ void replaceBulk(uint32_t start, uint32_t size, const char* original_val, size_t
 
 ON_APPLICATION_START() {
     WHBLogUdpInit();
+    WHBLogCafeInit();
 
     DEBUG_FUNCTION_LINE("Inkay: hewwo!\n");
 
