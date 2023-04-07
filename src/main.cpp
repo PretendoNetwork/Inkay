@@ -350,6 +350,26 @@ DECL_FUNCTION(FSStatus, FSCloseFile, FSClient * client, FSCmdBlock * block, FSFi
     return real_FSCloseFile(client, block, handle, errorMask);
 }
 
+DECL_FUNCTION(uint32_t, NSSLExportInternalServerCertificate, NSSLServerCertId cert, int unk, void* unk2, void* unk3) {
+    if (cert == NSSL_SERVER_CERT_THAWTE_PREMIUM_SERVER_CA) { // Martini patches
+        OSFatal("[JXT-598-0069] Please uninstall Martini patches to continue.\n" \
+                "See pretendo.network/docs/search for more info.\n\n" \
+                "Hold the POWER button for 4 seconds to shut down.\n\n"
+                "            .\n"
+                ".---------.'---.\n"
+                "'.       :    .'\n"
+                "  '.  .:::  .'\n"
+                "    '.'::'.'\n"
+                "      '||'\n"
+                "       ||\n"
+                "       ||\n"
+                "mrz    ||\n"
+                "   ---====---");
+    }
+    return real_NSSLExportInternalServerCertificate(cert, unk, unk2, unk3);
+}
+
 WUPS_MUST_REPLACE_FOR_PROCESS(FSOpenFile, WUPS_LOADER_LIBRARY_COREINIT, FSOpenFile, WUPS_FP_TARGET_PROCESS_MIIVERSE);
 WUPS_MUST_REPLACE_FOR_PROCESS(FSReadFile, WUPS_LOADER_LIBRARY_COREINIT, FSReadFile, WUPS_FP_TARGET_PROCESS_MIIVERSE);
 WUPS_MUST_REPLACE_FOR_PROCESS(FSCloseFile, WUPS_LOADER_LIBRARY_COREINIT, FSCloseFile, WUPS_FP_TARGET_PROCESS_MIIVERSE);
+WUPS_MUST_REPLACE_FOR_PROCESS(NSSLExportInternalServerCertificate, WUPS_LOADER_LIBRARY_NSYSNET, NSSLExportInternalServerCertificate, WUPS_FP_TARGET_PROCESS_MIIVERSE);
