@@ -352,7 +352,7 @@ DECL_FUNCTION(FSStatus, FSCloseFile, FSClient * client, FSCmdBlock * block, FSFi
 
 DECL_FUNCTION(uint32_t, NSSLExportInternalServerCertificate, NSSLServerCertId cert, int unk, void* unk2, void* unk3) {
     if (cert == NSSL_SERVER_CERT_THAWTE_PREMIUM_SERVER_CA) { // Martini patches
-        OSFatal("[JXT-598-0069] Please uninstall Martini patches to continue.\n" \
+        OSFatal("[598-0069] Please uninstall Martini patches to continue.\n" \
                 "See pretendo.network/docs/search for more info.\n\n" \
                 "Hold the POWER button for 4 seconds to shut down.\n\n"
                 "            .\n"
