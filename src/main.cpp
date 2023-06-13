@@ -25,7 +25,6 @@
 #include <coreinit/memorymap.h>
 #include <coreinit/memexpheap.h>
 #include <notifications/notifications.h>
-#include "wut_extra.h"
 #include <utils/logger.h>
 #include "url_patches.h"
 #include "config.h"
@@ -120,7 +119,7 @@ static void write_string(uint32_t addr, const char* str)
     }
 }
 
-static bool is555(MCP_SystemVersion version) {
+static bool is555(MCPSystemVersion version) {
     return (version.major == 5) && (version.minor == 5) && (version.patch >= 5);
 }
 
@@ -142,12 +141,12 @@ INITIALIZE_PLUGIN() {
     }
 
     //get os version
-    MCP_SystemVersion os_version;
+    MCPSystemVersion os_version;
     int mcp = MCP_Open();
     int ret = MCP_GetSystemVersion(mcp, &os_version);
     if (ret < 0) {
         DEBUG_FUNCTION_LINE("getting system version failed (%d/%d)!", mcp, ret);
-        os_version = (MCP_SystemVersion) {
+        os_version = (MCPSystemVersion) {
                 .major = 5, .minor = 5, .patch = 5, .region = 'E'
         };
     }
