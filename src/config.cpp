@@ -47,8 +47,10 @@ void Config::Init() {
             DEBUG_FUNCTION_LINE("Failed to close storage");
         }
     }
-
-    Config::is_wiiu_menu = (OSGetTitleID() == _SYSGetSystemApplicationTitleId(SYSTEM_APP_ID_WII_U_MENU));
+    
+    uint64_t current_title_id = OSGetTitleID();
+    uint64_t wiiu_menu_tid = _SYSGetSystemApplicationTitleId(SYSTEM_APP_ID_WII_U_MENU);
+    Config::is_wiiu_menu = (current_title_id == wiiu_menu_tid);
 }
 
 static void connect_to_network_changed(ConfigItemBoolean* item, bool new_value) {
