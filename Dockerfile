@@ -1,4 +1,4 @@
-FROM wiiuenv/devkitppc:20221228
+FROM ghcr.io/wiiu-env/devkitppc:20230326
 
 COPY --from=wiiuenv/libnotifications:20230126 /artifacts $DEVKITPRO
 COPY --from=wiiuenv/libkernel:20220724 /artifacts $DEVKITPRO
