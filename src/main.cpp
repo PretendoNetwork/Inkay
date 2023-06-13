@@ -47,7 +47,7 @@
 **/
 WUPS_PLUGIN_NAME("Inkay");
 WUPS_PLUGIN_DESCRIPTION("Pretendo Network Patcher");
-WUPS_PLUGIN_VERSION("v2.2");
+WUPS_PLUGIN_VERSION("v2.3");
 WUPS_PLUGIN_AUTHOR("Pretendo contributors");
 WUPS_PLUGIN_LICENSE("ISC");
 
