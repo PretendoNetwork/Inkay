@@ -14,6 +14,11 @@ public:
 
     // private stuff
     static bool need_relaunch;
+    
+    // private stuff
+    static bool is_wiiu_menu;
+
+    static bool unregister_task_item_pressed;
 };
 
 #endif //INKAY_CONFIG_H
