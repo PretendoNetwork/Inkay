@@ -30,6 +30,7 @@
 #include "config.h"
 #include "Notification.h"
 #include "patches/olv_urls.h"
+#include "patches/game_matchmaking.h"
 
 #include <coreinit/filesystem.h>
 #include <cstring>
@@ -56,6 +57,7 @@ WUPS_USE_STORAGE("inkay");
 
 #include <kernel/kernel.h>
 #include <mocha/mocha.h>
+#include <function_patcher/function_patching.h>
 
 //thanks @Gary#4139 :p
 static void write_string(uint32_t addr, const char* str)
@@ -134,13 +136,19 @@ INITIALIZE_PLUGIN() {
         StartNotificationThread("Using Nintendo Network");
     }
 
-
     MCP_Close(mcp);
+
+    if (FunctionPatcher_InitLibrary() == FUNCTION_PATCHER_RESULT_SUCCESS) {
+        install_matchmaking_patches();
+    }
 }
 DEINITIALIZE_PLUGIN() {
+    remove_matchmaking_patches();
+
     WHBLogUdpDeinit();
     Mocha_DeInitLibrary();
     NotificationModule_DeInitLibrary();
+    FunctionPatcher_DeInitLibrary();
 }
 
 ON_APPLICATION_START() {
