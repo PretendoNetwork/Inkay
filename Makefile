@@ -21,7 +21,7 @@ WUMS_ROOT := $(DEVKITPRO)/wums
 #-------------------------------------------------------------------------------
 TARGET		:=	Inkay-pretendo
 BUILD		:=	build
-SOURCES		:=	src src/utils
+SOURCES		:=	src src/patches src/utils
 DATA		:=	data
 INCLUDES	:=	src
 
