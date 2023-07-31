@@ -54,6 +54,7 @@ WUPS_PLUGIN_AUTHOR("Pretendo contributors");
 WUPS_PLUGIN_LICENSE("ISC");
 
 WUPS_USE_STORAGE("inkay");
+WUPS_USE_WUT_DEVOPTAB();
 
 #include <kernel/kernel.h>
 #include <mocha/mocha.h>
@@ -158,6 +159,7 @@ ON_APPLICATION_START() {
     DEBUG_FUNCTION_LINE("Inkay: hewwo!\n");
 
     setup_olv_libs();
+    matchmaking_notify_titleswitch();
 }
 
 ON_APPLICATION_ENDS() {

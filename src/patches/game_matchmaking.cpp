@@ -15,7 +15,10 @@
 #include "game_matchmaking.h"
 #include "utils/logger.h"
 
+#include "ini.h"
 #include <array>
+#include <optional>
+#include <string>
 #include <vector>
 #include <cstdint>
 #include <function_patcher/function_patching.h>
@@ -27,21 +30,60 @@
 constexpr std::array<uint64_t, 3> mk8_tids = {MARIO_KART_8_TID_J, MARIO_KART_8_TID_U, MARIO_KART_8_TID_E};
 std::vector<PatchedFunctionHandle> matchmaking_patches;
 
+struct modpack {
+    std::string name = "Mario Kart 8";
+    int dlc_id = -1;
+};
+std::optional<modpack> dlc_modpack;
+
+static int handler(void* user, const char* section, const char* name, const char* value) {
+    auto* mod = (modpack*)user;
+    auto match = [section, name](const char* s, const char* n) -> bool {
+        return strcmp(section, s) == 0 && strcmp(name, n) == 0;
+    };
+
+    if (match("pretendo", "name")) {
+        mod->name = value;
+    } else if (match("pretendo", "dlc_id")) {
+        mod->dlc_id = std::strtol(value, nullptr, 16);
+    } else return 0;
+
+    return 1;
+}
+
+static void check_modpack() {
+    modpack mod;
+    if (ini_parse("fs:/vol/content/pretendo.ini", handler, &mod)) {
+        DEBUG_FUNCTION_LINE("Inkay/MK8: Doesn't look like a modpack");
+    }
+
+    DEBUG_FUNCTION_LINE("Inkay/MK8: Playing %s (%08x)", mod.name.c_str(), mod.dlc_id);
+    dlc_modpack = mod;
+}
+
 DECL_FUNCTION(void, mk8_MatchmakeSessionSearchCriteria_SetAttribute, void* _this, uint32_t attributeIndex, uint32_t attributeValue) {
-    const int new_dlc = 4; //todo
     if (attributeIndex == 4) {
-        DEBUG_FUNCTION_LINE("changed search DLC from %d to %d", attributeValue, new_dlc);
-        attributeValue = (attributeValue & ~0xFF) | new_dlc; // keep upper bits
+        if (!dlc_modpack) check_modpack();
+
+        const int dlc_id = dlc_modpack->dlc_id;
+        if (dlc_id != -1) {
+            DEBUG_FUNCTION_LINE("Inkay/MK8: Searching for %s session (%08x)", dlc_modpack->name.c_str(), dlc_id);
+            attributeValue = dlc_id;
+        }
     }
 
     real_mk8_MatchmakeSessionSearchCriteria_SetAttribute(_this, attributeIndex, attributeValue);
 }
 
 DECL_FUNCTION(void, mk8_MatchmakeSession_SetAttribute, void* _this, uint32_t attributeIndex, uint32_t attributeValue) {
-    const int new_dlc = 4; //todo
     if (attributeIndex == 4) {
-        DEBUG_FUNCTION_LINE("changed DLC from %d to %d", attributeValue, new_dlc);
-        attributeValue = (attributeValue & ~0xFF) | new_dlc; // keep upper bits
+        if (!dlc_modpack) check_modpack();
+
+        const int dlc_id = dlc_modpack->dlc_id;
+        if (dlc_id != -1) {
+            DEBUG_FUNCTION_LINE("Inkay/MK8: Creating %s session (%08x)", dlc_modpack->name.c_str(), dlc_id);
+            attributeValue = dlc_id;
+        }
     }
 
     real_mk8_MatchmakeSession_SetAttribute(_this, attributeIndex, attributeValue);
@@ -79,4 +121,8 @@ void remove_matchmaking_patches() {
         FunctionPatcher_RemoveFunctionPatch(handle);
     }
     matchmaking_patches.clear();
+}
+
+void matchmaking_notify_titleswitch() {
+    dlc_modpack.reset();
 }
