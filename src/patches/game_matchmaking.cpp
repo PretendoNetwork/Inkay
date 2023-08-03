@@ -13,6 +13,7 @@
 */
 
 #include "game_matchmaking.h"
+#include "config.h"
 #include "utils/logger.h"
 
 #include "ini.h"
@@ -20,7 +21,6 @@
 #include <optional>
 #include <string>
 #include <vector>
-#include <cstdint>
 #include <function_patcher/function_patching.h>
 
 #define MARIO_KART_8_TID_J 0x000500001010EB00
@@ -36,9 +36,9 @@ struct modpack {
 };
 std::optional<modpack> dlc_modpack;
 
-static int handler(void* user, const char* section, const char* name, const char* value) {
-    auto* mod = (modpack*)user;
-    auto match = [section, name](const char* s, const char* n) -> bool {
+static int handler(void *user, const char *section, const char *name, const char *value) {
+    auto *mod = (modpack *) user;
+    auto match = [section, name](const char *s, const char *n) -> bool {
         return strcmp(section, s) == 0 && strcmp(name, n) == 0;
     };
 
@@ -61,7 +61,8 @@ static void check_modpack() {
     dlc_modpack = mod;
 }
 
-DECL_FUNCTION(void, mk8_MatchmakeSessionSearchCriteria_SetAttribute, void* _this, uint32_t attributeIndex, uint32_t attributeValue) {
+DECL_FUNCTION(void, mk8_MatchmakeSessionSearchCriteria_SetAttribute, void *_this, uint32_t attributeIndex,
+              uint32_t attributeValue) {
     if (attributeIndex == 4) {
         if (!dlc_modpack) check_modpack();
 
@@ -75,7 +76,7 @@ DECL_FUNCTION(void, mk8_MatchmakeSessionSearchCriteria_SetAttribute, void* _this
     real_mk8_MatchmakeSessionSearchCriteria_SetAttribute(_this, attributeIndex, attributeValue);
 }
 
-DECL_FUNCTION(void, mk8_MatchmakeSession_SetAttribute, void* _this, uint32_t attributeIndex, uint32_t attributeValue) {
+DECL_FUNCTION(void, mk8_MatchmakeSession_SetAttribute, void *_this, uint32_t attributeIndex, uint32_t attributeValue) {
     if (attributeIndex == 4) {
         if (!dlc_modpack) check_modpack();
 
@@ -90,34 +91,51 @@ DECL_FUNCTION(void, mk8_MatchmakeSession_SetAttribute, void* _this, uint32_t att
 }
 
 void install_matchmaking_patches() {
-    matchmaking_patches.reserve(2);
-
-    function_replacement_data_t repl = REPLACE_FUNCTION_OF_EXECUTABLE_BY_ADDRESS_WITH_VERSION(
-        mk8_MatchmakeSessionSearchCriteria_SetAttribute,
-        mk8_tids.data(), mk8_tids.size(),
-        "Turbo.rpx",
-        0x0098e7b4, 64, 64
-    );
-    PatchedFunctionHandle handle = 0;
-    if (FunctionPatcher_AddFunctionPatch(&repl, &handle, nullptr) != FUNCTION_PATCHER_RESULT_SUCCESS) {
-        DEBUG_FUNCTION_LINE("Inkay/MK8: Failed to patch MatchmakeSessionSearchCriteria::SetAttribute!");
+    if (!Config::connect_to_network) {
+        return;
     }
-    matchmaking_patches.push_back(handle);
 
-    function_replacement_data_t repl2 = REPLACE_FUNCTION_OF_EXECUTABLE_BY_ADDRESS_WITH_VERSION(
-            mk8_MatchmakeSession_SetAttribute,
-            mk8_tids.data(), mk8_tids.size(),
-            "Turbo.rpx",
-            0x0098e52c, 64, 64
-    );
-    if (FunctionPatcher_AddFunctionPatch(&repl2, &handle, nullptr) != FUNCTION_PATCHER_RESULT_SUCCESS) {
-        DEBUG_FUNCTION_LINE("Inkay/MK8: Failed to patch MatchmakeSession::SetAttribute!");
-    }
-    matchmaking_patches.push_back(handle);
+    matchmaking_patches.reserve(4);
+
+    auto add_patch = [](function_replacement_data_t repl, const char *game, const char *name) {
+        PatchedFunctionHandle handle = 0;
+        if (FunctionPatcher_AddFunctionPatch(&repl, &handle, nullptr) != FUNCTION_PATCHER_RESULT_SUCCESS) {
+            DEBUG_FUNCTION_LINE("Inkay/%s: Failed to patch %s!", game, name);
+        }
+        matchmaking_patches.push_back(handle);
+    };
+
+    add_patch(REPLACE_FUNCTION_OF_EXECUTABLE_BY_ADDRESS_WITH_VERSION(
+                      mk8_MatchmakeSessionSearchCriteria_SetAttribute,
+                      mk8_tids.data(), mk8_tids.size(),
+                      "Turbo.rpx",
+                      0x0098e7b4, 64, 64
+              ), "MK8", "MatchmakeSessionSearchCriteria::SetAttribute");
+    add_patch(REPLACE_FUNCTION_OF_EXECUTABLE_BY_ADDRESS_WITH_VERSION(
+                      mk8_MatchmakeSessionSearchCriteria_SetAttribute,
+                      mk8_tids.data(), mk8_tids.size(),
+                      "Turbo.rpx",
+                      0x0098eafc, 81, 81
+              ), "MK8", "MatchmakeSessionSearchCriteria::SetAttribute");
+
+
+    add_patch(REPLACE_FUNCTION_OF_EXECUTABLE_BY_ADDRESS_WITH_VERSION(
+                      mk8_MatchmakeSession_SetAttribute,
+                      mk8_tids.data(), mk8_tids.size(),
+                      "Turbo.rpx",
+                      0x0098e52c, 64, 64
+              ), "MK8", "MatchmakeSession::SetAttribute");
+
+    add_patch(REPLACE_FUNCTION_OF_EXECUTABLE_BY_ADDRESS_WITH_VERSION(
+                      mk8_MatchmakeSession_SetAttribute,
+                      mk8_tids.data(), mk8_tids.size(),
+                      "Turbo.rpx",
+                      0x0098e874, 81, 81
+              ), "MK8", "MatchmakeSession::SetAttribute");
 }
 
 void remove_matchmaking_patches() {
-    for (auto handle : matchmaking_patches) {
+    for (auto handle: matchmaking_patches) {
         FunctionPatcher_RemoveFunctionPatch(handle);
     }
     matchmaking_patches.clear();
