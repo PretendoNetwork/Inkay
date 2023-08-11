@@ -21,7 +21,6 @@
 #include <optional>
 #include <coreinit/debug.h>
 #include <coreinit/filesystem.h>
-#include <coreinit/memory.h>
 #include <nsysnet/nssl.h>
 
 #include "ca_pem.h" // generated at buildtime
@@ -36,32 +35,32 @@ const char wave_new[] = {
         0x00, 0x00, 0x00, 0x00, 0x2E, 0x70, 0x72, 0x65, 0x74, 0x65, 0x6E, 0x64,
         0x6F, 0x2E, 0x63, 0x63, 0x00
 };
-
-const char miiverse_green_highlight[] = {
+const unsigned char miiverse_green_highlight[] = {
         0x82, 0xff, 0x05, 0xff, 0x82, 0xff, 0x05, 0xff, 0x1d, 0xff, 0x04, 0xff, 0x1d, 0xff, 0x04, 0xff
 };
-
-const char juxt_purple_highlight[] = {
+const unsigned char juxt_purple_highlight[] = {
         0x5d, 0x4a, 0x9a, 0xff, 0x5d, 0x4a, 0x9a, 0xff, 0x5d, 0x4a, 0x9a, 0xff, 0x5d, 0x4a, 0x9a, 0xff
 };
-
-const char miiverse_green_touch1[] = {
+const unsigned char miiverse_green_touch1[] = {
         0x94, 0xd9, 0x2a, 0x00, 0x57, 0xbd, 0x12, 0xff
 };
-
-const char juxt_purple_touch1[] = {
+const unsigned char juxt_purple_touch1[] = {
         0x5d, 0x4a, 0x9a, 0x00, 0x5d, 0x4a, 0x9a, 0xff
 };
-
-const char miiverse_green_touch2[] = {
+const unsigned char miiverse_green_touch2[] = {
         0x57, 0xbd, 0x12, 0x00, 0x94, 0xd9, 0x2a, 0xff
 };
-
-const char juxt_purple_touch2[] = {
+const unsigned char juxt_purple_touch2[] = {
         0x5d, 0x4a, 0x9a, 0x00, 0x5d, 0x4a, 0x9a, 0xff
 };
 
-static std::optional <FSFileHandle> rootca_pem_handle{};
+const replacement replacements[] = {
+        {miiverse_green_highlight, juxt_purple_highlight},
+        {miiverse_green_touch1,    juxt_purple_touch1},
+        {miiverse_green_touch2,    juxt_purple_touch2},
+};
+
+static std::optional<FSFileHandle> rootca_pem_handle{};
 
 DECL_FUNCTION(int, FSOpenFile, FSClient *client, FSCmdBlock *block, char *path, const char *mode, uint32_t *handle,
               int error) {
@@ -101,17 +100,11 @@ DECL_FUNCTION(FSStatus, FSReadFile, FSClient *client, FSCmdBlock *block, uint8_t
     }
 
     if (rootca_pem_handle && *rootca_pem_handle == handle) {
-        memset(buffer, 0, size);
-        strcpy((char *) buffer, (const char *) ca_pem);
+        strlcpy((char *) buffer, (const char *) ca_pem, size * count);
 
         //this can't be done above (in the FSOpenFile hook) since it's not loaded yet.
-        replaceBulk(0x10000000, 0x10000000, miiverse_green_highlight, sizeof(miiverse_green_highlight),
-                    juxt_purple_highlight, sizeof(juxt_purple_highlight));
-        replaceBulk(0x10000000, 0x10000000, miiverse_green_touch1, sizeof(miiverse_green_touch1), juxt_purple_touch1,
-                    sizeof(juxt_purple_touch1));
-        replaceBulk(0x10000000, 0x10000000, miiverse_green_touch2, sizeof(miiverse_green_touch2), juxt_purple_touch2,
-                    sizeof(juxt_purple_touch2));
-
+        //the hardcoded offsets suck but they really are at Random Places In The Heap
+        replaceBulk(0x11000000, 0x02000000, replacements);
         return (FSStatus) count;
     }
 
