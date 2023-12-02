@@ -57,28 +57,13 @@ DECL_FUNCTION(int, FSOpenFile_accSettings, FSClient *client, FSCmdBlock *block, 
         return real_FSOpenFile_accSettings(client, block, path, mode, handle, error);
     }
 
-    const char *initialOma = "vol/content/initial.oma";
-
     if (!Config::connect_to_network) {
         DEBUG_FUNCTION_LINE("Inkay: account settings patches skipped.");
         return real_FSOpenFile_accSettings(client, block, path, mode, handle, error);
     }
 
-    if (strcmp(initialOma, path) == 0) {
-        //below is a hacky (yet functional!) way to get Inkay to redirect URLs from the Miiverse applet
-        //we do it when loading this file since it should only load once, preventing massive lag spikes as it searches all of MEM2 xD
-        //WHBLogUdpInit();
-
-        DEBUG_FUNCTION_LINE("Inkay: hewwo account settings!\n");
-
-        if (!replace(0x10000000, 0x10000000, wave_original, sizeof(wave_original), wave_new, sizeof(wave_new)))
-            DEBUG_FUNCTION_LINE("\n\n\n\nInkay: We didn't find the url /)>~<(\\\n\n\n");
-
-        if (!replace(0x10000000, 0x10000000, whitelist_original, sizeof(whitelist_original), whitelist_new, sizeof(whitelist_new)))
-            DEBUG_FUNCTION_LINE("\n\n\n\nInkay: We didn't find the whitelist /)>~<(\\\n\n\n");
-
     // Check for root CA file and take note of its handle
-    } else if (strcmp("vol/content/browser/rootca.pem", path) == 0) {
+    if (strcmp("vol/content/browser/rootca.pem", path) == 0) {
         int ret = real_FSOpenFile_accSettings(client, block, path, mode, handle, error);
         rootca_pem_handle = *handle;
         DEBUG_FUNCTION_LINE("Inkay: Found account settings CA, replacing...");
@@ -119,6 +104,31 @@ bool isAccountSettingsTitle() {
         OSGetTitleID() == ACCOUNT_SETTINGS_TID_U ||
         OSGetTitleID() == ACCOUNT_SETTINGS_TID_E
         ));
+}
+
+bool patchAccountSettings() {
+    if(!isAccountSettingsTitle()) {
+        return false;
+    }
+
+    if (!Config::connect_to_network) {
+        DEBUG_FUNCTION_LINE("Inkay: account settings patches skipped.");
+        return false;
+    }
+
+    DEBUG_FUNCTION_LINE("Inkay: hewwo account settings!\n");
+
+    if (!replace(0x10000000, 0x10000000, wave_original, sizeof(wave_original), wave_new, sizeof(wave_new))) {
+        DEBUG_FUNCTION_LINE("Inkay: We didn't find the url /)>~<(\\");
+        return false;
+    }
+
+    if (!replace(0x10000000, 0x10000000, whitelist_original, sizeof(whitelist_original), whitelist_new, sizeof(whitelist_new))) {
+        DEBUG_FUNCTION_LINE("Inkay: We didn't find the whitelist /)>~<(\\");
+        return false;
+    }
+        
+    return true;
 }
 
 WUPS_MUST_REPLACE_FOR_PROCESS(FSOpenFile_accSettings, WUPS_LOADER_LIBRARY_COREINIT, FSOpenFile, WUPS_FP_TARGET_PROCESS_GAME);

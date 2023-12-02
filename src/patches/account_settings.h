@@ -16,3 +16,5 @@
 #pragma once
 
 bool isAccountSettingsTitle();
+
+bool patchAccountSettings();
