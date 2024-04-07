@@ -14,7 +14,7 @@ const std::pair<const char *, const char *> dns_replacements[] = {
 static const char * replace_dns_name(const char *dns_name) {
     DEBUG_FUNCTION_LINE("DNS request for %s", dns_name);
 
-//    if (!Config::connect_to_network) return dns_name;
+    if (!Config::connect_to_network) return dns_name;
 
     for (auto [original, replacement] : dns_replacements) {
         if (strcmp(original, dns_name) == 0)
