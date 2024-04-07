@@ -7,6 +7,8 @@
 #include "wut_extra.h"
 #include "utils/logger.h"
 #include <wups.h>
+#include <wups/storage.h>
+#include <wups/config.h>
 #include <wups/config/WUPSConfigItemBoolean.h>
 
 #include <coreinit/title.h>
