@@ -43,13 +43,15 @@
 
 #include <gx2/surface.h>
 
+#define INKAY_VERSION "v2.3"
+
 /**
     Mandatory plugin information.
     If not set correctly, the loader will refuse to use the plugin.
 **/
 WUPS_PLUGIN_NAME("Inkay");
 WUPS_PLUGIN_DESCRIPTION("Pretendo Network Patcher");
-WUPS_PLUGIN_VERSION("v2.3");
+WUPS_PLUGIN_VERSION(INKAY_VERSION);
 WUPS_PLUGIN_AUTHOR("Pretendo contributors");
 WUPS_PLUGIN_LICENSE("ISC");
 
@@ -114,7 +116,7 @@ INITIALIZE_PLUGIN() {
                 .major = 5, .minor = 5, .patch = 5, .region = 'E'
         };
     }
-    DEBUG_FUNCTION_LINE("Running on %d.%d.%d%c",
+    DEBUG_FUNCTION_LINE_VERBOSE("Running on %d.%d.%d%c",
         os_version.major, os_version.minor, os_version.patch, os_version.region
     );
 
@@ -129,11 +131,11 @@ INITIALIZE_PLUGIN() {
         for (const auto& patch : url_patches) {
             write_string(patch.address, patch.url);
         }
-        DEBUG_FUNCTION_LINE("Pretendo URL and NoSSL patches applied successfully.");
+        DEBUG_FUNCTION_LINE_VERBOSE("Pretendo URL and NoSSL patches applied successfully.");
         StartNotificationThread("Using Pretendo Network");
     }
     else {
-        DEBUG_FUNCTION_LINE("Pretendo URL and NoSSL patches skipped.");
+        DEBUG_FUNCTION_LINE_VERBOSE("Pretendo URL and NoSSL patches skipped.");
         StartNotificationThread("Using Nintendo Network");
     }
 
@@ -156,13 +158,13 @@ ON_APPLICATION_START() {
     WHBLogUdpInit();
     WHBLogCafeInit();
 
-    DEBUG_FUNCTION_LINE("Inkay: hewwo!\n");
+    DEBUG_FUNCTION_LINE_VERBOSE("Inkay " INKAY_VERSION " starting up\n");
 
     setup_olv_libs();
     matchmaking_notify_titleswitch();
 }
 
 ON_APPLICATION_ENDS() {
-    DEBUG_FUNCTION_LINE("Inkay: shutting down...\n");
+    DEBUG_FUNCTION_LINE_VERBOSE("Unloading Inkay...\n");
     StopNotificationThread();
 }

@@ -23,9 +23,9 @@ bool replace(uint32_t start, uint32_t size, const char* original_val, size_t ori
     for (uint32_t addr = start; addr < start + size - original_val_sz; addr++) {
         int ret = memcmp(original_val, (void*)addr, original_val_sz);
         if (ret == 0) {
-            DEBUG_FUNCTION_LINE("found str @%08x: %s", addr, (const char*)addr);
+            DEBUG_FUNCTION_LINE_VERBOSE("found str @%08x: %s", addr, (const char*)addr);
             KernelCopyData(OSEffectiveToPhysical(addr), OSEffectiveToPhysical((uint32_t)new_val), new_val_sz);
-            DEBUG_FUNCTION_LINE("new str   @%08x: %s", addr, (const char*)addr);
+            DEBUG_FUNCTION_LINE_VERBOSE("new str   @%08x: %s", addr, (const char*)addr);
             return true;
         }
     }
