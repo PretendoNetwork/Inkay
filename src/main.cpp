@@ -61,6 +61,7 @@ WUPS_USE_WUT_DEVOPTAB();
 #include <kernel/kernel.h>
 #include <mocha/mocha.h>
 #include <function_patcher/function_patching.h>
+#include "patches/account_settings.h"
 
 //thanks @Gary#4139 :p
 static void write_string(uint32_t addr, const char* str)
@@ -162,6 +163,7 @@ ON_APPLICATION_START() {
 
     setup_olv_libs();
     matchmaking_notify_titleswitch();
+    patchAccountSettings();
 }
 
 ON_APPLICATION_ENDS() {
