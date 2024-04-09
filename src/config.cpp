@@ -19,6 +19,7 @@
 
 #include "wut_extra.h"
 #include "utils/logger.h"
+#include "utils/sysconfig.h"
 #include <wups.h>
 #include <wups/storage.h>
 #include <wups/config.h>
@@ -77,14 +78,6 @@ static void connect_to_network_changed(ConfigItemBoolean* item, bool new_value) 
     WUPS_StoreInt(nullptr, "connect_to_network", Config::connect_to_network);
 }
 
-static int32_t unregister_task_item_get_display_value(void *context, char *out_buf, int32_t out_size) {
-    if(!Config::is_wiiu_menu)
-        strncpy(out_buf, "From WiiU menu only", out_size);
-    else
-        strncpy(out_buf, Config::unregister_task_item_pressed ? "Restart to apply" : "Press A", out_size);
-    return 0;
-}
-
 static void unregister_task_item_pressed_cb(void *context, WUPSConfigButtons button) {
     if (!Config::unregister_task_item_pressed && Config::is_wiiu_menu && button == WUPS_CONFIG_BUTTON_A) {
 
@@ -121,6 +114,54 @@ static bool unregister_task_item_is_movement_allowed(void *context) {
     return true;
 }
 
+struct config_strings {
+    const char* plugin_name;
+    const char* network_category;
+    const char* connect_to_network_setting;
+    const char* other_category;
+    const char* reset_wwp_setting;
+    const char* press_a_action;
+    const char* restart_to_apply_action;
+    const char* need_menu_action;
+};
+config_strings strings;
+
+constexpr config_strings get_config_strings(nn::swkbd::LanguageType language) {
+    switch (language) {
+        case nn::swkbd::LanguageType::English:
+        default:
+            return {
+                .plugin_name = "Inkay",
+                .network_category = "Network selection",
+                .connect_to_network_setting = "Connect to the Pretendo network",
+                .other_category = "Other settings",
+                .reset_wwp_setting = "Reset Wara Wara Plaza",
+                .press_a_action = "Press A",
+                .restart_to_apply_action = "Restart to apply",
+                .need_menu_action = "From WiiU menu only"
+            };
+        case nn::swkbd::LanguageType::Spanish:
+            return {
+                .plugin_name = "Inkay",
+                .network_category = "Selección de red",
+                .connect_to_network_setting = "Conectar a la red Pretendo",
+                .other_category = "Otros ajustes",
+                .reset_wwp_setting = "Restablecer Wara Wara Plaza",
+                .press_a_action = "Pulsa A",
+                .restart_to_apply_action = "Reinicia para confirmar",
+                .need_menu_action = "Sólo desde el menú de WiiU",
+            };
+    }
+}
+
+static int32_t unregister_task_item_get_display_value(void *context, char *out_buf, int32_t out_size) {
+    if(!Config::is_wiiu_menu)
+        strncpy(out_buf, strings.need_menu_action, out_size);
+    else
+        strncpy(out_buf, Config::unregister_task_item_pressed ? strings.restart_to_apply_action : strings.press_a_action, out_size);
+    return 0;
+}
+
 WUPS_GET_CONFIG() {
     // We open the storage so we can persist the configuration the user did.
     if (WUPS_OpenStorage() != WUPS_STORAGE_ERROR_SUCCESS) {
@@ -128,16 +169,18 @@ WUPS_GET_CONFIG() {
         return 0;
     }
 
+    strings = get_config_strings(get_system_language());
+
     WUPSConfigHandle config;
-    WUPSConfig_CreateHandled(&config, "Inkay");
+    WUPSConfig_CreateHandled(&config, strings.plugin_name);
 
     WUPSConfigCategoryHandle patching_cat;
-    WUPSConfig_AddCategoryByNameHandled(config, "Patching", &patching_cat);
+    WUPSConfig_AddCategoryByNameHandled(config, strings.network_category, &patching_cat);
 
-    WUPSConfigItemBoolean_AddToCategoryHandled(config, patching_cat, "connect_to_network", "Connect to the Pretendo network", Config::connect_to_network, &connect_to_network_changed);
+    WUPSConfigItemBoolean_AddToCategoryHandled(config, patching_cat, "connect_to_network", strings.connect_to_network_setting, Config::connect_to_network, &connect_to_network_changed);
     
     WUPSConfigCategoryHandle boss_cat;
-    WUPSConfig_AddCategoryByNameHandled(config, "BOSS settings", &boss_cat);
+    WUPSConfig_AddCategoryByNameHandled(config, strings.other_category, &boss_cat);
 
     WUPSConfigCallbacks_t unregisterTasksItemCallbacks = {
         .getCurrentValueDisplay = unregister_task_item_get_display_value,
@@ -151,7 +194,7 @@ WUPS_GET_CONFIG() {
     };
 
     WUPSConfigItemHandle unregisterTasksItem;
-    WUPSConfigItem_Create(&unregisterTasksItem, "unregister_task_item", "Unregister Wara Wara Plaza BOSS tasks", unregisterTasksItemCallbacks, &Config::unregister_task_item_pressed);
+    WUPSConfigItem_Create(&unregisterTasksItem, "unregister_task_item", strings.reset_wwp_setting, unregisterTasksItemCallbacks, &Config::unregister_task_item_pressed);
     WUPSConfigCategory_AddItem(boss_cat, unregisterTasksItem);
 
     return config;

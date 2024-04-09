@@ -66,6 +66,7 @@ WUPS_USE_WUT_DEVOPTAB();
 #include <mocha/mocha.h>
 #include <function_patcher/function_patching.h>
 #include "patches/account_settings.h"
+#include "utils/sysconfig.h"
 
 //thanks @Gary#4139 :p
 static void write_string(uint32_t addr, const char* str)
@@ -92,6 +93,27 @@ static void write_string(uint32_t addr, const char* str)
 
 static bool is555(MCPSystemVersion version) {
     return (version.major == 5) && (version.minor == 5) && (version.patch >= 5);
+}
+
+static const char * get_nintendo_network_message() {
+    // TL note: "Nintendo Network" is a proper noun - "Network" is part of the name
+    switch (get_system_language()) {
+        case nn::swkbd::LanguageType::English:
+        default:
+            return "Using Nintendo Network";
+        case nn::swkbd::LanguageType::Spanish:
+            return "Usando Nintendo Network";
+    }
+}
+static const char * get_pretendo_message() {
+    // TL note: "Pretendo" is the name - "network" is NOT part of it and can be translated
+    switch (get_system_language()) {
+        case nn::swkbd::LanguageType::English:
+        default:
+            return "Using Pretendo Network";
+        case nn::swkbd::LanguageType::Spanish:
+            return "Usando la red Pretendo";
+    }
 }
 
 INITIALIZE_PLUGIN() {
@@ -137,11 +159,11 @@ INITIALIZE_PLUGIN() {
             write_string(patch.address, patch.url);
         }
         DEBUG_FUNCTION_LINE_VERBOSE("Pretendo URL and NoSSL patches applied successfully.");
-        StartNotificationThread("Using Pretendo Network");
+        StartNotificationThread(get_pretendo_message());
     }
     else {
         DEBUG_FUNCTION_LINE_VERBOSE("Pretendo URL and NoSSL patches skipped.");
-        StartNotificationThread("Using Nintendo Network");
+        StartNotificationThread(get_nintendo_network_message());
     }
 
     MCP_Close(mcp);
