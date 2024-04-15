@@ -151,6 +151,17 @@ constexpr config_strings get_config_strings(nn::swkbd::LanguageType language) {
                 .restart_to_apply_action = "Reinicia para confirmar",
                 .need_menu_action = "Sólo desde el menú de WiiU",
             };
+        case nn::swkbd::LanguageType::French:
+            return {
+                .plugin_name = "Inkay",
+                .network_category = "Sélection du réseau",
+                .connect_to_network_setting = "Connexion à Pretendo",
+                .other_category = "Autres paramètres",
+                .reset_wwp_setting = "Réinitialiser la place WaraWara",
+                .press_a_action = "Appuyez sur A",
+                .restart_to_apply_action = "Redémarrer pour appliquer",
+                .need_menu_action = "Depuis le menu Wii U seulement",
+            };
     }
 }
 
