@@ -106,13 +106,13 @@ static const char * get_nintendo_network_message() {
     }
 }
 static const char * get_pretendo_message() {
-    // TL note: "Pretendo" is the name - "network" is NOT part of it and can be translated
+    // TL note: "Pretendo Network" is also a proper noun - though "Pretendo" alone can refer to us as a project
     switch (get_system_language()) {
         case nn::swkbd::LanguageType::English:
         default:
             return "Using Pretendo Network";
         case nn::swkbd::LanguageType::Spanish:
-            return "Usando la red Pretendo";
+            return "Usando Pretendo Network";
     }
 }
 
