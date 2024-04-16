@@ -162,6 +162,17 @@ constexpr config_strings get_config_strings(nn::swkbd::LanguageType language) {
                 .restart_to_apply_action = "Redémarrer pour appliquer",
                 .need_menu_action = "Depuis le menu Wii U seulement",
             };
+        case nn::swkbd::LanguageType::Italian:
+            return {
+                .plugin_name = "Inkay",
+                .network_category = "Selezione della rete",
+                .connect_to_network_setting = "Connettiti alla rete Pretendo",
+                .other_category = "Altre categorie",
+                .reset_wwp_setting = "Ripristina Wara Wara Plaza",
+                .press_a_action = "Premi A",
+                .restart_to_apply_action = "Riavvia per applicare",
+                .need_menu_action = "Solo dal menu WiiU",
+            };
     }
 }
 
