@@ -120,7 +120,7 @@ static const char * get_pretendo_message() {
         case nn::swkbd::LanguageType::French:
             return "Sur Pretendo Network";
         case nn::swkbd::LanguageType::Italian:
-            return "Usando Nintendo Network";
+            return "Usando Pretendo Network";
     }
 }
 
