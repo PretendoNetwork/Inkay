@@ -97,6 +97,8 @@ static bool is555(MCPSystemVersion version) {
 
 static const char * get_nintendo_network_message() {
     // TL note: "Nintendo Network" is a proper noun - "Network" is part of the name
+    // TL note: "Using" instead of "Connected" is deliberate - we don't know if a successful connection exists, we are
+    // only specifying what we'll *attempt* to connect to
     switch (get_system_language()) {
         case nn::swkbd::LanguageType::English:
         default:
@@ -107,10 +109,14 @@ static const char * get_nintendo_network_message() {
             return "Sur Nintendo Network";
          case nn::swkbd::LanguageType::Italian:
             return "Usando Nintendo Network";
+        case nn::swkbd::LanguageType::German:
+            return "Nutze Nintendo Network";
     }
 }
 static const char * get_pretendo_message() {
     // TL note: "Pretendo Network" is also a proper noun - though "Pretendo" alone can refer to us as a project
+    // TL note: "Using" instead of "Connected" is deliberate - we don't know if a successful connection exists, we are
+    // only specifying what we'll *attempt* to connect to
     switch (get_system_language()) {
         case nn::swkbd::LanguageType::English:
         default:
@@ -121,6 +127,8 @@ static const char * get_pretendo_message() {
             return "Sur Pretendo Network";
         case nn::swkbd::LanguageType::Italian:
             return "Usando Pretendo Network";
+        case nn::swkbd::LanguageType::German:
+            return "Nutze Pretendo Network";
     }
 }
 
