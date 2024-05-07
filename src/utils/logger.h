@@ -25,7 +25,11 @@ extern "C" {
     } while (0);
 
 #ifdef DEBUG
-#define DEBUG_FUNCTION_LINE_VERBOSE(FMT, ARGS...) DEBUG_FUNCTION_LINE(FMT, ARGS...)
+// i copy pasted this from DEBUG_FUNCTION_LINE because the previous define would not compile while in debug
+#define DEBUG_FUNCTION_LINE_VERBOSE(FMT, ARGS...) do { \
+    WHBLogPrintf("[(P)   Inkay (VERBOSE)][%23s]%30s@L%04d: " FMT "",__FILENAME__,__FUNCTION__, __LINE__, ## ARGS); \
+    } while (0);
+	
 #else
 #define DEBUG_FUNCTION_LINE_VERBOSE(FMT, ARGS...) while(0)
 #endif

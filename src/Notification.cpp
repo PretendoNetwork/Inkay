@@ -17,7 +17,6 @@
 #include "Notification.h"
 #include <coreinit/cache.h>
 #include <coreinit/thread.h>
-#include <coreinit/title.h>
 #include <notifications/notification_defines.h>
 #include <notifications/notifications.h>
 #include <thread>
@@ -38,11 +37,8 @@ void ShowNotification(const char * notification) {
 }
 
 void StartNotificationThread(const char * value) {
-    uint64_t titleID = OSGetTitleID();
-    if (titleID == 0x0005001010040000L || titleID == 0x0005001010040100L || titleID == 0x0005001010040200L) {
-        sShutdownHintThread = false;
-        sShowHintThread = std::make_unique<std::thread>(ShowNotification, value);
-    }
+	sShutdownHintThread = false;
+	sShowHintThread = std::make_unique<std::thread>(ShowNotification, value);
 }
 
 void StopNotificationThread() {
