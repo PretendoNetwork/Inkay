@@ -124,7 +124,7 @@ static void unregister_task_item_on_input_cb(void *context, WUPSConfigSimplePadD
             {
                 if (nn::act::IsNetworkAccountEx(i) == true)
                 {
-                    nn::boss::Task task;
+                    nn::boss::Task task{};
                     nn::act::PersistentId persistentId = nn::act::GetPersistentIdEx(i);
 
                     __ct__Q3_2nn4boss4TaskFv(&task);
