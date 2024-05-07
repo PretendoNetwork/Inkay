@@ -69,9 +69,6 @@ WUPS_USE_WUT_DEVOPTAB();
 #include "patches/account_settings.h"
 #include "utils/sysconfig.h"
 
-// this is required due to the new aroma config api changes
-static bool hasDisplayedPopup = false;
-
 //thanks @Gary#4139 :p
 static void write_string(uint32_t addr, const char* str)
 {
@@ -207,16 +204,14 @@ ON_APPLICATION_START() {
     DEBUG_FUNCTION_LINE_VERBOSE("Inkay " INKAY_VERSION " starting up\n");
 
     uint64_t titleID = OSGetTitleID();
-    if ((titleID == 0x0005001010040000L || titleID == 0x0005001010040100L || titleID == 0x0005001010040200L) && !hasDisplayedPopup) {
-		if (Config::connect_to_network) {
-			StartNotificationThread(get_pretendo_message());
-		}
-		else {
-			StartNotificationThread(get_nintendo_network_message());
-		}
-		
-		hasDisplayedPopup = true;
-	}
+    if ((titleID == 0x0005001010040000L || titleID == 0x0005001010040100L || titleID == 0x0005001010040200L)) {
+        if (Config::connect_to_network) {
+            ShowNotification(get_pretendo_message());
+        }
+        else {
+            ShowNotification(get_nintendo_network_message());
+        }
+    }
 
     setup_olv_libs();
     matchmaking_notify_titleswitch();
@@ -225,5 +220,4 @@ ON_APPLICATION_START() {
 
 ON_APPLICATION_ENDS() {
     DEBUG_FUNCTION_LINE_VERBOSE("Unloading Inkay...\n");
-    StopNotificationThread();
 }
