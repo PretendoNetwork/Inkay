@@ -36,6 +36,7 @@ bool Config::connect_to_network = true;
 bool Config::need_relaunch = false;
 bool Config::unregister_task_item_pressed = false;
 bool Config::is_wiiu_menu = false;
+bool Config::has_displayed_popup = false;
 
 config_strings strings;
 
@@ -104,9 +105,12 @@ constexpr config_strings get_config_strings(nn::swkbd::LanguageType language) {
 }
 
 static void connect_to_network_changed(ConfigItemBoolean* item, bool new_value) {
-    DEBUG_FUNCTION_LINE("New value in skipPatchesChanged: %d", new_value);
+    DEBUG_FUNCTION_LINE("connect_to_network changed to: %d", new_value);
     if (new_value != Config::connect_to_network) {
         Config::need_relaunch = true;
+		
+		// make popup display again when rebooting into another network (caused by aroma beta 17+ api changes as far as i know)
+		Config::has_displayed_popup = false;
     }
     Config::connect_to_network = new_value;
     if (WUPSStorageAPI::Store<bool>("connect_to_network", Config::connect_to_network) != WUPS_STORAGE_ERROR_SUCCESS) {
@@ -122,21 +126,23 @@ static void unregister_task_item_on_input_cb(void *context, WUPSConfigSimplePadD
 
         for (uint8_t i = 1; i <= nn::act::GetNumOfAccounts(); i++)
         {
-            if (nn::act::IsSlotOccupied(i) == true)
+            if (nn::act::IsSlotOccupied(i) && nn::act::IsNetworkAccountEx(i))
             {
-                if (nn::act::IsNetworkAccountEx(i) == true)
-                {
-                    nn::boss::Task task{};
-                    nn::act::PersistentId persistentId = nn::act::GetPersistentIdEx(i);
+              nn::boss::Task task{};
+              nn::act::PersistentId persistentId = nn::act::GetPersistentIdEx(i);
 
-                    __ct__Q3_2nn4boss4TaskFv(&task);
-                    Initialize__Q3_2nn4boss4TaskFPCcUi(&task, "oltopic", persistentId);
+              __ct__Q3_2nn4boss4TaskFv(&task);
+              Initialize__Q3_2nn4boss4TaskFPCcUi(&task, "oltopic", persistentId);
 
-                    uint32_t res = Unregister__Q3_2nn4boss4TaskFv(&task);
-                    DEBUG_FUNCTION_LINE("Unregistered oltopic for: SlotNo %d | Persistent ID %08x -> 0x%08x", i, persistentId, res);
-                }
-            }
-        }
+      // bypasses compiler warning about unused variable
+      #ifdef DEBUG
+              uint32_t res = Unregister__Q3_2nn4boss4TaskFv(&task);
+              DEBUG_FUNCTION_LINE_VERBOSE("Unregistered oltopic for: SlotNo %d | Persistent ID %08x -> 0x%08x", i, persistentId, res);
+      #else
+              Unregister__Q3_2nn4boss4TaskFv(&task);
+      #endif
+          }
+      }
 
         Finalize__Q2_2nn4bossFv();
         nn::act::Finalize();
@@ -168,6 +174,7 @@ static WUPSConfigAPICallbackStatus ConfigMenuOpenedCallback(WUPSConfigCategoryHa
 
 	try {
 		auto patching_cat = WUPSConfigCategory::Create(strings.network_category);
+		
 		//                                                  config id                   display name            default        current value             changed callback
 		patching_cat.add(WUPSConfigItemBoolean::Create("connect_to_network", strings.connect_to_network_setting, true, Config::connect_to_network, &connect_to_network_changed));
 		root.add(std::move(patching_cat));
@@ -235,14 +242,16 @@ void Config::Init() {
 
 	WUPSStorageError storageRes;
 	// Try to get value from storage
-	if ((storageRes = WUPSStorageAPI::Get<bool>("connect_to_network", connect_to_network)) == WUPS_STORAGE_ERROR_NOT_FOUND) {
+	if ((storageRes = WUPSStorageAPI::Get<bool>("connect_to_network", Config::connect_to_network)) == WUPS_STORAGE_ERROR_NOT_FOUND) {
 		DEBUG_FUNCTION_LINE("Connect to network value not found, attempting to migrate/create");
+		
 		bool skipPatches = false;
 		if (WUPSStorageAPI::Get<bool>("skipPatches", skipPatches) == WUPS_STORAGE_ERROR_SUCCESS) {
 			// Migrate old config value
-			connect_to_network = !skipPatches;
+			Config::connect_to_network = !skipPatches;
 			WUPSStorageAPI::DeleteItem("skipPatches");
 		}
+    
 		// Add the value to the storage if it's missing.
 		if (WUPSStorageAPI::Store<bool>("connect_to_network", connect_to_network) != WUPS_STORAGE_ERROR_SUCCESS) {
 			DEBUG_FUNCTION_LINE("Failed to store bool");
