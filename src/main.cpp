@@ -152,16 +152,6 @@ INITIALIZE_PLUGIN() {
         DEBUG_FUNCTION_LINE("NotificationModule_InitLibrary failed");
     }
 
-    //uint64_t titleID = OSGetTitleID();
-    //if (titleID == _SYSGetSystemApplicationTitleId(SYSTEM_APP_ID_WII_U_MENU)) {
-        if (Config::connect_to_network) {
-            ShowNotification(get_pretendo_message());
-        }
-        else {
-            ShowNotification(get_nintendo_network_message());
-        }
-    //}
-
     //get os version
     MCPSystemVersion os_version;
     int mcp = MCP_Open();
@@ -189,9 +179,13 @@ INITIALIZE_PLUGIN() {
             write_string(patch.address, patch.url);
         }
         DEBUG_FUNCTION_LINE_VERBOSE("Pretendo URL and NoSSL patches applied successfully.");
+		
+		ShowNotification(get_pretendo_message());
     }
     else {
         DEBUG_FUNCTION_LINE_VERBOSE("Pretendo URL and NoSSL patches skipped.");
+		
+		ShowNotification(get_nintendo_network_message());
     }
 
     MCP_Close(mcp);
