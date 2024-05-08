@@ -24,7 +24,7 @@ BUILD		:=	build
 SOURCES		:=	src src/patches src/utils src/ext/inih
 DATA		:=	data
 INCLUDES	:=	src src/ext/inih
-DEBUG		:=	1
+#DEBUG		:=	1
 
 #-------------------------------------------------------------------------------
 # options for code generation
