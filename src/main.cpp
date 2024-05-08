@@ -152,6 +152,16 @@ INITIALIZE_PLUGIN() {
         DEBUG_FUNCTION_LINE("NotificationModule_InitLibrary failed");
     }
 
+    //uint64_t titleID = OSGetTitleID();
+    //if (titleID == _SYSGetSystemApplicationTitleId(SYSTEM_APP_ID_WII_U_MENU)) {
+        if (Config::connect_to_network) {
+            ShowNotification(get_pretendo_message());
+        }
+        else {
+            ShowNotification(get_nintendo_network_message());
+        }
+    //}
+
     //get os version
     MCPSystemVersion os_version;
     int mcp = MCP_Open();
@@ -205,16 +215,6 @@ DEINITIALIZE_PLUGIN() {
 
 ON_APPLICATION_START() {
     DEBUG_FUNCTION_LINE_VERBOSE("Inkay " INKAY_VERSION " starting up...\n");
-
-    uint64_t titleID = OSGetTitleID();
-    if (titleID == _SYSGetSystemApplicationTitleId(SYSTEM_APP_ID_WII_U_MENU)) {
-        if (Config::connect_to_network) {
-            ShowNotification(get_pretendo_message());
-        }
-        else {
-            ShowNotification(get_nintendo_network_message());
-        }
-    }
 
     setup_olv_libs();
     matchmaking_notify_titleswitch();
