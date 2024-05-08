@@ -54,7 +54,7 @@ constexpr config_strings get_config_strings(nn::swkbd::LanguageType language) {
                 .restart_to_apply_action = "Restart to apply",
                 .need_menu_action = "From WiiU menu only"
             };
-			
+
         case nn::swkbd::LanguageType::Spanish:
             return {
                 .plugin_name = "Inkay",
@@ -66,7 +66,7 @@ constexpr config_strings get_config_strings(nn::swkbd::LanguageType language) {
                 .restart_to_apply_action = "Reinicia para confirmar",
                 .need_menu_action = "Sólo desde el menú de WiiU",
             };
-			
+
         case nn::swkbd::LanguageType::French:
             return {
                 .plugin_name = "Inkay",
@@ -89,7 +89,7 @@ constexpr config_strings get_config_strings(nn::swkbd::LanguageType language) {
                 .restart_to_apply_action = "Riavvia per applicare",
                 .need_menu_action = "Solo dal menu WiiU",
             };
-			
+
         case nn::swkbd::LanguageType::German:
             return {
 				.plugin_name = "Inkay",
@@ -113,7 +113,9 @@ static void connect_to_network_changed(ConfigItemBoolean* item, bool new_value) 
 		Config::has_displayed_popup = false;
     }
     Config::connect_to_network = new_value;
-    WUPSStorageAPI::Store<bool>("connect_to_network", Config::connect_to_network);
+    if (WUPSStorageAPI::Store<bool>("connect_to_network", Config::connect_to_network) != WUPS_STORAGE_ERROR_SUCCESS) {
+        DEBUG_FUNCTION_LINE("Failed to save \"connect_to_network\" value (%d)", Config::connect_to_network);
+    }
 }
 
 static void unregister_task_item_on_input_cb(void *context, WUPSConfigSimplePadData input) {
@@ -126,21 +128,21 @@ static void unregister_task_item_on_input_cb(void *context, WUPSConfigSimplePadD
         {
             if (nn::act::IsSlotOccupied(i) && nn::act::IsNetworkAccountEx(i))
             {
-				nn::boss::Task task;
-				nn::act::PersistentId persistentId = nn::act::GetPersistentIdEx(i);
+              nn::boss::Task task{};
+              nn::act::PersistentId persistentId = nn::act::GetPersistentIdEx(i);
 
-				__ct__Q3_2nn4boss4TaskFv(&task);
-				Initialize__Q3_2nn4boss4TaskFPCcUi(&task, "oltopic", persistentId);
+              __ct__Q3_2nn4boss4TaskFv(&task);
+              Initialize__Q3_2nn4boss4TaskFPCcUi(&task, "oltopic", persistentId);
 
-// bypasses compiler warning about unused variable
-#ifdef DEBUG
-				uint32_t res = Unregister__Q3_2nn4boss4TaskFv(&task);
-				DEBUG_FUNCTION_LINE_VERBOSE("Unregistered oltopic for: SlotNo %d | Persistent ID %08x -> 0x%08x", i, persistentId, res);
-#else
-				Unregister__Q3_2nn4boss4TaskFv(&task);
-#endif
-            }
-        }
+      // bypasses compiler warning about unused variable
+      #ifdef DEBUG
+              uint32_t res = Unregister__Q3_2nn4boss4TaskFv(&task);
+              DEBUG_FUNCTION_LINE_VERBOSE("Unregistered oltopic for: SlotNo %d | Persistent ID %08x -> 0x%08x", i, persistentId, res);
+      #else
+              Unregister__Q3_2nn4boss4TaskFv(&task);
+      #endif
+          }
+      }
 
         Finalize__Q2_2nn4bossFv();
         nn::act::Finalize();
@@ -155,7 +157,7 @@ static int32_t unregister_task_item_get_display_value(void *context, char *out_b
         strncpy(out_buf, strings.need_menu_action, out_size);
     else
         strncpy(out_buf, Config::unregister_task_item_pressed ? strings.restart_to_apply_action : strings.press_a_action, out_size);
-	
+
     return 0;
 }
 
@@ -166,7 +168,7 @@ static WUPSConfigAPICallbackStatus ConfigMenuOpenedCallback(WUPSConfigCategoryHa
 
 	// get translation strings
     strings = get_config_strings(get_system_language());
-	
+
 	// create root config category
 	WUPSConfigCategory root = WUPSConfigCategory(rootHandle);
 
@@ -174,7 +176,7 @@ static WUPSConfigAPICallbackStatus ConfigMenuOpenedCallback(WUPSConfigCategoryHa
 		auto patching_cat = WUPSConfigCategory::Create(strings.network_category);
 		
 		//                                                  config id                   display name            default        current value             changed callback
-		patching_cat.add(WUPSConfigItemBoolean::Create("connect_to_network", strings.connect_to_network_setting, false, Config::connect_to_network, &connect_to_network_changed));
+		patching_cat.add(WUPSConfigItemBoolean::Create("connect_to_network", strings.connect_to_network_setting, true, Config::connect_to_network, &connect_to_network_changed));
 		root.add(std::move(patching_cat));
 
 		auto other_cat = WUPSConfigCategory::Create(strings.other_category);
@@ -190,7 +192,7 @@ static WUPSConfigAPICallbackStatus ConfigMenuOpenedCallback(WUPSConfigCategoryHa
 			.onInputEx = nullptr,
 			.onDelete = nullptr
 		};
-		
+
 		WUPSConfigAPIItemOptionsV2 unregisterTasksItemOptions = {
 			.displayName = strings.reset_wwp_setting,
 			.context = nullptr,
@@ -198,15 +200,20 @@ static WUPSConfigAPICallbackStatus ConfigMenuOpenedCallback(WUPSConfigCategoryHa
 		};
 
 		WUPSConfigItemHandle unregisterTasksItem;
-		WUPSConfigAPI_Item_Create(unregisterTasksItemOptions, &unregisterTasksItem);
-		WUPSConfigAPI_Category_AddItem(other_cat.getHandle(), unregisterTasksItem);
-		
+        WUPSConfigAPIStatus err;
+		if ((err = WUPSConfigAPI_Item_Create(unregisterTasksItemOptions, &unregisterTasksItem)) != WUPSCONFIG_API_RESULT_SUCCESS) {
+            throw std::runtime_error(std::string("Failed to create config item: ").append(WUPSConfigAPI_GetStatusStr(err)));
+        }
+        if ((err = WUPSConfigAPI_Category_AddItem(other_cat.getHandle(), unregisterTasksItem)) != WUPSCONFIG_API_RESULT_SUCCESS) {
+            throw std::runtime_error(std::string("Failed to add config item: ").append(WUPSConfigAPI_GetStatusStr(err)));
+        }
+
 		root.add(std::move(other_cat));
 	}
 	catch (std::exception &e) {
         DEBUG_FUNCTION_LINE("Creating config menu failed: %s", e.what());
         return WUPSCONFIG_API_CALLBACK_RESULT_ERROR;
-    }	
+    }
 
     return WUPSCONFIG_API_CALLBACK_RESULT_SUCCESS;
 }
@@ -232,23 +239,23 @@ void Config::Init() {
 		DEBUG_FUNCTION_LINE("Failed to initialize WUPS Config API");
 		return;
 	}
-	
+
 	WUPSStorageError storageRes;
 	// Try to get value from storage
 	if ((storageRes = WUPSStorageAPI::Get<bool>("connect_to_network", Config::connect_to_network)) == WUPS_STORAGE_ERROR_NOT_FOUND) {
 		DEBUG_FUNCTION_LINE("Connect to network value not found, attempting to migrate/create");
 		
 		bool skipPatches = false;
-		if ((storageRes = WUPSStorageAPI::Get<bool>("skipPatches", skipPatches)) != WUPS_STORAGE_ERROR_NOT_FOUND) {
+		if (WUPSStorageAPI::Get<bool>("skipPatches", skipPatches) == WUPS_STORAGE_ERROR_SUCCESS) {
 			// Migrate old config value
 			Config::connect_to_network = !skipPatches;
 			WUPSStorageAPI::DeleteItem("skipPatches");
 		}
+    
 		// Add the value to the storage if it's missing.
-		//if (WUPSStorageAPI::Store<bool>("connect_to_network", Config::connect_to_network) != WUPS_STORAGE_ERROR_SUCCESS) {
-		//	DEBUG_FUNCTION_LINE("Failed to store bool");
-		//}
-		// commented indefinitely due to defaults likely being handled by the config api already
+		if (WUPSStorageAPI::Store<bool>("connect_to_network", connect_to_network) != WUPS_STORAGE_ERROR_SUCCESS) {
+			DEBUG_FUNCTION_LINE("Failed to store bool");
+		}
 	}
 	else if (storageRes != WUPS_STORAGE_ERROR_SUCCESS) {
 		DEBUG_FUNCTION_LINE("Failed to get bool %s (%d)", WUPSStorageAPI_GetStatusStr(storageRes), storageRes);

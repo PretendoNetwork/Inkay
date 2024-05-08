@@ -15,37 +15,16 @@
 */
 
 #include "Notification.h"
-#include <coreinit/cache.h>
-#include <coreinit/thread.h>
 #include <notifications/notification_defines.h>
 #include <notifications/notifications.h>
-#include <thread>
 
-static std::unique_ptr<std::thread> sShowHintThread;
-static bool sShutdownHintThread = false;
+void ShowNotification(std::string_view notification) {
+    auto err1 = NotificationModule_SetDefaultValue(NOTIFICATION_MODULE_NOTIFICATION_TYPE_ERROR,
+                                                   NOTIFICATION_MODULE_DEFAULT_OPTION_KEEP_UNTIL_SHOWN, true);
+    auto err2 = NotificationModule_SetDefaultValue(NOTIFICATION_MODULE_NOTIFICATION_TYPE_INFO,
+                                                   NOTIFICATION_MODULE_DEFAULT_OPTION_DURATION_BEFORE_FADE_OUT,
+                                                   15.0f);
+    if (err1 != NOTIFICATION_MODULE_RESULT_SUCCESS || err2 != NOTIFICATION_MODULE_RESULT_SUCCESS) return;
 
-void ShowNotification(const char * notification) {
-    // Wait for notification module to be ready
-    bool isOverlayReady = false;
-    while (!sShutdownHintThread && NotificationModule_IsOverlayReady(&isOverlayReady) == NOTIFICATION_MODULE_RESULT_SUCCESS && !isOverlayReady)
-        OSSleepTicks(OSMillisecondsToTicks(16));
-    if (sShutdownHintThread || !isOverlayReady) return;
-    NotificationModuleStatus err = NotificationModule_SetDefaultValue(NOTIFICATION_MODULE_NOTIFICATION_TYPE_INFO, NOTIFICATION_MODULE_DEFAULT_OPTION_DURATION_BEFORE_FADE_OUT, 15.0f);
-    if(err != NOTIFICATION_MODULE_RESULT_SUCCESS) return;
-
-    NotificationModule_AddInfoNotification(notification);
-}
-
-void StartNotificationThread(const char * value) {
-	sShutdownHintThread = false;
-	sShowHintThread = std::make_unique<std::thread>(ShowNotification, value);
-}
-
-void StopNotificationThread() {
-    if (sShowHintThread != nullptr) {
-        sShutdownHintThread = true;
-        OSMemoryBarrier();
-        sShowHintThread->join();
-        sShowHintThread.reset();
-    }
+    NotificationModule_AddInfoNotification(notification.data());
 }

@@ -204,24 +204,17 @@ DEINITIALIZE_PLUGIN() {
 }
 
 ON_APPLICATION_START() {
-	WHBLogModuleInit();
-	WHBLogCafeInit();
-    WHBLogUdpInit();
-
     DEBUG_FUNCTION_LINE_VERBOSE("Inkay " INKAY_VERSION " starting up...\n");
 
     uint64_t titleID = OSGetTitleID();
-    if (titleID == _SYSGetSystemApplicationTitleId(SYSTEM_APP_ID_WII_U_MENU) && !Config::has_displayed_popup) 
-	{
-		if (Config::connect_to_network) {
-			StartNotificationThread(get_pretendo_message());
-		}
-		else {
-			StartNotificationThread(get_nintendo_network_message());
-		}
-		
-		Config::has_displayed_popup = true;
-	}
+    if (titleID == _SYSGetSystemApplicationTitleId(SYSTEM_APP_ID_WII_U_MENU)) {
+        if (Config::connect_to_network) {
+            ShowNotification(get_pretendo_message());
+        }
+        else {
+            ShowNotification(get_nintendo_network_message());
+        }
+    }
 
     setup_olv_libs();
     matchmaking_notify_titleswitch();
@@ -229,12 +222,6 @@ ON_APPLICATION_START() {
 }
 
 ON_APPLICATION_ENDS() {
-	// commented because it doesnt really unload inkay, just the application thread, which is a bit misleading
+	// commented because it doesnt really unload inkay
 	//DEBUG_FUNCTION_LINE_VERBOSE("Unloading Inkay...\n");
-	
-	WHBLogModuleDeinit();
-	WHBLogCafeDeinit();
-    WHBLogUdpDeinit();
-
-    StopNotificationThread();
 }
