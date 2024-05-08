@@ -36,7 +36,6 @@ bool Config::connect_to_network = true;
 bool Config::need_relaunch = false;
 bool Config::unregister_task_item_pressed = false;
 bool Config::is_wiiu_menu = false;
-bool Config::has_displayed_popup = false;
 
 config_strings strings;
 
@@ -108,9 +107,6 @@ static void connect_to_network_changed(ConfigItemBoolean* item, bool new_value) 
     DEBUG_FUNCTION_LINE("connect_to_network changed to: %d", new_value);
     if (new_value != Config::connect_to_network) {
         Config::need_relaunch = true;
-		
-		// make popup display again when rebooting into another network (caused by aroma beta 17+ api changes as far as i know)
-		Config::has_displayed_popup = false;
     }
     Config::connect_to_network = new_value;
     if (WUPSStorageAPI::Store<bool>("connect_to_network", Config::connect_to_network) != WUPS_STORAGE_ERROR_SUCCESS) {
