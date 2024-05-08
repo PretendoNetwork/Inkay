@@ -22,6 +22,7 @@
 #include <wups.h>
 #include <optional>
 #include <nsysnet/nssl.h>
+#include <sysapp/title.h>
 #include <coreinit/cache.h>
 #include <coreinit/dynload.h>
 #include <coreinit/mcp.h>
@@ -68,9 +69,6 @@ WUPS_USE_WUT_DEVOPTAB();
 #include <function_patcher/function_patching.h>
 #include "patches/account_settings.h"
 #include "utils/sysconfig.h"
-
-// this is required due to the new aroma config api changes
-static bool hasDisplayedPopup = false;
 
 //thanks @Gary#4139 :p
 static void write_string(uint32_t addr, const char* str)
@@ -137,8 +135,9 @@ static const char * get_pretendo_message() {
 }
 
 INITIALIZE_PLUGIN() {
+	WHBLogModuleInit();
+	WHBLogCafeInit();
     WHBLogUdpInit();
-    WHBLogCafeInit();
 
     Config::Init();
 
@@ -167,6 +166,7 @@ INITIALIZE_PLUGIN() {
         os_version.major, os_version.minor, os_version.patch, os_version.region
     );
 
+	// if using pretendo then (try to) apply the ssl patches
     if (Config::connect_to_network) {
         if (is555(os_version)) {
             Mocha_IOSUKernelWrite32(0xE1019F78, 0xE3A00001); // mov r0, #1
@@ -194,20 +194,25 @@ INITIALIZE_PLUGIN() {
 DEINITIALIZE_PLUGIN() {
     remove_matchmaking_patches();
 
-    WHBLogUdpDeinit();
     Mocha_DeInitLibrary();
     NotificationModule_DeInitLibrary();
     FunctionPatcher_DeInitLibrary();
+	
+	WHBLogModuleDeinit();
+	WHBLogCafeDeinit();
+    WHBLogUdpDeinit();
 }
 
 ON_APPLICATION_START() {
+	WHBLogModuleInit();
+	WHBLogCafeInit();
     WHBLogUdpInit();
-    WHBLogCafeInit();
 
-    DEBUG_FUNCTION_LINE_VERBOSE("Inkay " INKAY_VERSION " starting up\n");
+    DEBUG_FUNCTION_LINE_VERBOSE("Inkay " INKAY_VERSION " starting up...\n");
 
     uint64_t titleID = OSGetTitleID();
-    if ((titleID == 0x0005001010040000L || titleID == 0x0005001010040100L || titleID == 0x0005001010040200L) && !hasDisplayedPopup) {
+    if (titleID == _SYSGetSystemApplicationTitleId(SYSTEM_APP_ID_WII_U_MENU) && !Config::has_displayed_popup) 
+	{
 		if (Config::connect_to_network) {
 			StartNotificationThread(get_pretendo_message());
 		}
@@ -215,7 +220,7 @@ ON_APPLICATION_START() {
 			StartNotificationThread(get_nintendo_network_message());
 		}
 		
-		hasDisplayedPopup = true;
+		Config::has_displayed_popup = true;
 	}
 
     setup_olv_libs();
@@ -224,6 +229,12 @@ ON_APPLICATION_START() {
 }
 
 ON_APPLICATION_ENDS() {
-    DEBUG_FUNCTION_LINE_VERBOSE("Unloading Inkay...\n");
+	// commented because it doesnt really unload inkay, just the application thread, which is a bit misleading
+	//DEBUG_FUNCTION_LINE_VERBOSE("Unloading Inkay...\n");
+	
+	WHBLogModuleDeinit();
+	WHBLogCafeDeinit();
+    WHBLogUdpDeinit();
+
     StopNotificationThread();
 }

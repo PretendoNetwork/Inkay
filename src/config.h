@@ -19,6 +19,9 @@ public:
     static bool is_wiiu_menu;
 
     static bool unregister_task_item_pressed;
+	
+	// for notifications to work correctly in aroma beta 17+
+	static bool has_displayed_popup;
 };
 
 struct config_strings {
