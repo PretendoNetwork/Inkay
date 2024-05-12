@@ -135,7 +135,6 @@ static const char * get_pretendo_message() {
 }
 
 INITIALIZE_PLUGIN() {
-	WHBLogModuleInit();
 	WHBLogCafeInit();
     WHBLogUdpInit();
 
@@ -202,7 +201,6 @@ DEINITIALIZE_PLUGIN() {
     NotificationModule_DeInitLibrary();
     FunctionPatcher_DeInitLibrary();
 	
-	WHBLogModuleDeinit();
 	WHBLogCafeDeinit();
     WHBLogUdpDeinit();
 }
