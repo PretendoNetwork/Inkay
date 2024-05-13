@@ -1,7 +1,5 @@
 #pragma once
 
-void ShowNotification(const char * notification);
+#include <string_view>
 
-void StartNotificationThread(const char * value);
-
-void StopNotificationThread();
+void ShowNotification(std::string_view notification);

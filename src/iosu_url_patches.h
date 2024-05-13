@@ -36,6 +36,7 @@ static const URL_Patch url_patches[] = {
         {0xE22B3FFC, "https://nus.c.shop.pretendo.cc/nus/services/NetUpdateSOAP"},
         {0xE229DE0C, "n.app.pretendo.cc"},
         //nim-boss .bss
+		{0xE24B8A24, "https://nppl.app.pretendo.cc/p01/policylist/1/1/UNK"},
         {0xE31930D4, "https://%s%saccount.pretendo.cc/v%u/api/"}
 
 };

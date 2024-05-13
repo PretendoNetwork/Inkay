@@ -22,12 +22,14 @@
 #include <wups.h>
 #include <optional>
 #include <nsysnet/nssl.h>
+#include <sysapp/title.h>
 #include <coreinit/cache.h>
 #include <coreinit/dynload.h>
 #include <coreinit/mcp.h>
 #include <coreinit/memory.h>
 #include <coreinit/memorymap.h>
 #include <coreinit/memexpheap.h>
+#include <coreinit/title.h>
 #include <notifications/notifications.h>
 #include <utils/logger.h>
 #include "iosu_url_patches.h"
@@ -47,7 +49,7 @@
 
 #include <gx2/surface.h>
 
-#define INKAY_VERSION "v2.5"
+#define INKAY_VERSION "v3.0"
 
 /**
     Mandatory plugin information.
@@ -133,8 +135,8 @@ static const char * get_pretendo_message() {
 }
 
 INITIALIZE_PLUGIN() {
+	WHBLogCafeInit();
     WHBLogUdpInit();
-    WHBLogCafeInit();
 
     Config::Init();
 
@@ -163,6 +165,7 @@ INITIALIZE_PLUGIN() {
         os_version.major, os_version.minor, os_version.patch, os_version.region
     );
 
+	// if using pretendo then (try to) apply the ssl patches
     if (Config::connect_to_network) {
         if (is555(os_version)) {
             Mocha_IOSUKernelWrite32(0xE1019F78, 0xE3A00001); // mov r0, #1
@@ -175,11 +178,13 @@ INITIALIZE_PLUGIN() {
             write_string(patch.address, patch.url);
         }
         DEBUG_FUNCTION_LINE_VERBOSE("Pretendo URL and NoSSL patches applied successfully.");
-        StartNotificationThread(get_pretendo_message());
+		
+		ShowNotification(get_pretendo_message());
     }
     else {
         DEBUG_FUNCTION_LINE_VERBOSE("Pretendo URL and NoSSL patches skipped.");
-        StartNotificationThread(get_nintendo_network_message());
+		
+		ShowNotification(get_nintendo_network_message());
     }
 
     MCP_Close(mcp);
@@ -188,20 +193,20 @@ INITIALIZE_PLUGIN() {
         install_matchmaking_patches();
     }
 }
+
 DEINITIALIZE_PLUGIN() {
     remove_matchmaking_patches();
 
-    WHBLogUdpDeinit();
     Mocha_DeInitLibrary();
     NotificationModule_DeInitLibrary();
     FunctionPatcher_DeInitLibrary();
+	
+	WHBLogCafeDeinit();
+    WHBLogUdpDeinit();
 }
 
 ON_APPLICATION_START() {
-    WHBLogUdpInit();
-    WHBLogCafeInit();
-
-    DEBUG_FUNCTION_LINE_VERBOSE("Inkay " INKAY_VERSION " starting up\n");
+    DEBUG_FUNCTION_LINE_VERBOSE("Inkay " INKAY_VERSION " starting up...\n");
 
     setup_olv_libs();
     matchmaking_notify_titleswitch();
@@ -209,6 +214,6 @@ ON_APPLICATION_START() {
 }
 
 ON_APPLICATION_ENDS() {
-    DEBUG_FUNCTION_LINE_VERBOSE("Unloading Inkay...\n");
-    StopNotificationThread();
+	// commented because it doesnt really unload inkay
+	//DEBUG_FUNCTION_LINE_VERBOSE("Unloading Inkay...\n");
 }

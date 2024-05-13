@@ -24,6 +24,7 @@ BUILD		:=	build
 SOURCES		:=	src src/patches src/utils src/ext/inih
 DATA		:=	data
 INCLUDES	:=	src src/ext/inih
+#DEBUG		:=	1
 
 #-------------------------------------------------------------------------------
 # options for code generation
@@ -32,6 +33,10 @@ CFLAGS	:=	-g -Wall -O2 -ffunction-sections \
 			$(MACHDEP)
 
 CFLAGS	+=	$(INCLUDE) -D__WIIU__ -D__WUT__ -D__WUPS__
+
+ifeq ($(DEBUG),1)
+	CFLAGS += -DDEBUG
+endif
 
 CXXFLAGS	:= $(CFLAGS) -std=c++20
 
