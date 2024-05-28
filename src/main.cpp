@@ -49,7 +49,7 @@
 
 #include <gx2/surface.h>
 
-#define INKAY_VERSION "v3.0"
+#define INKAY_VERSION "v2.5.0"
 
 /**
     Mandatory plugin information.
