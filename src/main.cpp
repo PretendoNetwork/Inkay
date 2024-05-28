@@ -62,6 +62,7 @@ WUPS_PLUGIN_AUTHOR("Pretendo contributors");
 WUPS_PLUGIN_LICENSE("ISC");
 
 WUPS_USE_STORAGE("inkay");
+
 WUPS_USE_WUT_DEVOPTAB();
 
 #include <kernel/kernel.h>
@@ -71,25 +72,24 @@ WUPS_USE_WUT_DEVOPTAB();
 #include "utils/sysconfig.h"
 
 //thanks @Gary#4139 :p
-static void write_string(uint32_t addr, const char* str)
-{
+static void write_string(uint32_t addr, const char *str) {
     int len = strlen(str) + 1;
     int remaining = len % 4;
     int num = len - remaining;
 
     for (int i = 0; i < (num / 4); i++) {
-        Mocha_IOSUKernelWrite32(addr + i * 4, *(uint32_t*)(str + i * 4));
+        Mocha_IOSUKernelWrite32(addr + i * 4, *(uint32_t * )(str + i * 4));
     }
 
     if (remaining > 0) {
         uint8_t buf[4];
-        Mocha_IOSUKernelRead32(addr + num, (uint32_t*)&buf);
+        Mocha_IOSUKernelRead32(addr + num, (uint32_t * ) & buf);
 
         for (int i = 0; i < remaining; i++) {
             buf[i] = *(str + num + i);
         }
 
-        Mocha_IOSUKernelWrite32(addr + num, *(uint32_t*)&buf);
+        Mocha_IOSUKernelWrite32(addr + num, *(uint32_t * ) & buf);
     }
 }
 
@@ -97,7 +97,7 @@ static bool is555(MCPSystemVersion version) {
     return (version.major == 5) && (version.minor == 5) && (version.patch >= 5);
 }
 
-static const char * get_nintendo_network_message() {
+static const char *get_nintendo_network_message() {
     // TL note: "Nintendo Network" is a proper noun - "Network" is part of the name
     // TL note: "Using" instead of "Connected" is deliberate - we don't know if a successful connection exists, we are
     // only specifying what we'll *attempt* to connect to
@@ -109,13 +109,14 @@ static const char * get_nintendo_network_message() {
             return "Usando Nintendo Network";
         case nn::swkbd::LanguageType::French:
             return "Sur Nintendo Network";
-         case nn::swkbd::LanguageType::Italian:
+        case nn::swkbd::LanguageType::Italian:
             return "Usando Nintendo Network";
         case nn::swkbd::LanguageType::German:
             return "Nutze Nintendo Network";
     }
 }
-static const char * get_pretendo_message() {
+
+static const char *get_pretendo_message() {
     // TL note: "Pretendo Network" is also a proper noun - though "Pretendo" alone can refer to us as a project
     // TL note: "Using" instead of "Connected" is deliberate - we don't know if a successful connection exists, we are
     // only specifying what we'll *attempt* to connect to
@@ -135,7 +136,7 @@ static const char * get_pretendo_message() {
 }
 
 INITIALIZE_PLUGIN() {
-	WHBLogCafeInit();
+    WHBLogCafeInit();
     WHBLogUdpInit();
 
     Config::Init();
@@ -162,29 +163,27 @@ INITIALIZE_PLUGIN() {
         };
     }
     DEBUG_FUNCTION_LINE_VERBOSE("Running on %d.%d.%d%c",
-        os_version.major, os_version.minor, os_version.patch, os_version.region
+                                os_version.major, os_version.minor, os_version.patch, os_version.region
     );
 
-	// if using pretendo then (try to) apply the ssl patches
+    // if using pretendo then (try to) apply the ssl patches
     if (Config::connect_to_network) {
         if (is555(os_version)) {
             Mocha_IOSUKernelWrite32(0xE1019F78, 0xE3A00001); // mov r0, #1
-        }
-        else {
+        } else {
             Mocha_IOSUKernelWrite32(0xE1019E84, 0xE3A00001); // mov r0, #1
         }
 
-        for (const auto& patch : url_patches) {
+        for (const auto &patch: url_patches) {
             write_string(patch.address, patch.url);
         }
         DEBUG_FUNCTION_LINE_VERBOSE("Pretendo URL and NoSSL patches applied successfully.");
-		
-		ShowNotification(get_pretendo_message());
-    }
-    else {
+
+        ShowNotification(get_pretendo_message());
+    } else {
         DEBUG_FUNCTION_LINE_VERBOSE("Pretendo URL and NoSSL patches skipped.");
-		
-		ShowNotification(get_nintendo_network_message());
+
+        ShowNotification(get_nintendo_network_message());
     }
 
     MCP_Close(mcp);
@@ -200,8 +199,8 @@ DEINITIALIZE_PLUGIN() {
     Mocha_DeInitLibrary();
     NotificationModule_DeInitLibrary();
     FunctionPatcher_DeInitLibrary();
-	
-	WHBLogCafeDeinit();
+
+    WHBLogCafeDeinit();
     WHBLogUdpDeinit();
 }
 
@@ -214,6 +213,5 @@ ON_APPLICATION_START() {
 }
 
 ON_APPLICATION_ENDS() {
-	// commented because it doesnt really unload inkay
-	//DEBUG_FUNCTION_LINE_VERBOSE("Unloading Inkay...\n");
+
 }

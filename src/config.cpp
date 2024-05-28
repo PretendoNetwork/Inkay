@@ -170,7 +170,7 @@ static WUPSConfigAPICallbackStatus ConfigMenuOpenedCallback(WUPSConfigCategoryHa
 
 	try {
 		auto patching_cat = WUPSConfigCategory::Create(strings.network_category);
-		
+
 		//                                                  config id                   display name            default        current value             changed callback
 		patching_cat.add(WUPSConfigItemBoolean::Create("connect_to_network", strings.connect_to_network_setting, true, Config::connect_to_network, &connect_to_network_changed));
 		root.add(std::move(patching_cat));
@@ -240,17 +240,17 @@ void Config::Init() {
 	// Try to get value from storage
 	if ((storageRes = WUPSStorageAPI::Get<bool>("connect_to_network", Config::connect_to_network)) == WUPS_STORAGE_ERROR_NOT_FOUND) {
 		DEBUG_FUNCTION_LINE("Connect to network value not found, attempting to migrate/create");
-		
+
 		bool skipPatches = false;
 		if (WUPSStorageAPI::Get<bool>("skipPatches", skipPatches) == WUPS_STORAGE_ERROR_SUCCESS) {
 			// Migrate old config value
 			Config::connect_to_network = !skipPatches;
 			WUPSStorageAPI::DeleteItem("skipPatches");
 		}
-    
+
 		// Add the value to the storage if it's missing.
 		if (WUPSStorageAPI::Store<bool>("connect_to_network", connect_to_network) != WUPS_STORAGE_ERROR_SUCCESS) {
-			DEBUG_FUNCTION_LINE("Failed to store bool");
+            DEBUG_FUNCTION_LINE("Failed to store bool");
 		}
 	}
 	else if (storageRes != WUPS_STORAGE_ERROR_SUCCESS) {

@@ -24,7 +24,7 @@
 #include <optional>
 
 nn::swkbd::LanguageType get_system_language() {
-    static std::optional<nn::swkbd::LanguageType> cached_language{};
+    static std::optional <nn::swkbd::LanguageType> cached_language{};
     if (cached_language) return *cached_language;
 
     UCHandle handle = UCOpen();
