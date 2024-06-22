@@ -100,6 +100,18 @@ constexpr config_strings get_config_strings(nn::swkbd::LanguageType language) {
                 .restart_to_apply_action = "Neustarten zum Anwenden",
                 .need_menu_action = "Nur vom Wii U-Menü aus",
             };
+
+        case nn::swkbd::LanguageType::Japanese:
+            return {
+                .plugin_name = "Inkay",
+                .network_category = "ネットワークの選択",
+                .connect_to_network_setting = "Pretendoネットワークに接続",
+                .other_category = "その他の設定",
+                .reset_wwp_setting = "わらわら広場をリセット",
+                .press_a_action = "Aボタンを押す",
+                .restart_to_apply_action = "再起動して適用",
+                .need_menu_action = "WiiUメニューからのみ実行可能"
+            };
     }
 }
 
