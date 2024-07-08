@@ -77,6 +77,7 @@ constexpr config_strings get_config_strings(nn::swkbd::LanguageType language) {
                 .restart_to_apply_action = "Redémarrer pour appliquer",
                 .need_menu_action = "Depuis le menu Wii U seulement",
             };
+
         case nn::swkbd::LanguageType::Italian:
             return {
                 .plugin_name = "Inkay",
@@ -99,6 +100,18 @@ constexpr config_strings get_config_strings(nn::swkbd::LanguageType language) {
                 .press_a_action = "Drücke A",
                 .restart_to_apply_action = "Neustarten zum Anwenden",
                 .need_menu_action = "Nur vom Wii U-Menü aus",
+            };
+            
+        case nn::swkbd::LanguageType::Dutch:
+            return {
+                .plugin_name = "Inkay",
+                .network_category = "Netwerkselectie",
+                .connect_to_network_setting = "Verbind met het Pretendo-netwerk",
+                .other_category = "Overige instellingen",
+                .reset_wwp_setting = "Reset het Wara Wara Plaza",
+                .press_a_action = "Druk A",
+                .restart_to_apply_action = "Herstart om toe te passen",
+                .need_menu_action = "Alleen vanuit het WiiU-menu"
             };
     }
 }
