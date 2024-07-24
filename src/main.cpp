@@ -177,6 +177,10 @@ INITIALIZE_PLUGIN() {
         for (const auto &patch: url_patches) {
             write_string(patch.address, patch.url);
         }
+
+        // IOS-NIM-BOSS GlobalPolicyList->state: poking this forces a refresh after we changed the url
+        Mocha_IOSUKernelWrite32(0xE24B3D90, 4);
+
         DEBUG_FUNCTION_LINE_VERBOSE("Pretendo URL and NoSSL patches applied successfully.");
 
         ShowNotification(get_pretendo_message());
