@@ -49,7 +49,7 @@
 
 #include <gx2/surface.h>
 
-#define INKAY_VERSION "v2.5.0"
+#define INKAY_VERSION "v2.6.0"
 
 /**
     Mandatory plugin information.
@@ -59,7 +59,7 @@ WUPS_PLUGIN_NAME("Inkay");
 WUPS_PLUGIN_DESCRIPTION("Pretendo Network Patcher");
 WUPS_PLUGIN_VERSION(INKAY_VERSION);
 WUPS_PLUGIN_AUTHOR("Pretendo contributors");
-WUPS_PLUGIN_LICENSE("ISC");
+WUPS_PLUGIN_LICENSE("GPLv3");
 
 WUPS_USE_STORAGE("inkay");
 
