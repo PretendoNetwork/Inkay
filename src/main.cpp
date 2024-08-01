@@ -113,6 +113,8 @@ static const char *get_nintendo_network_message() {
             return "Usando Nintendo Network";
         case nn::swkbd::LanguageType::German:
             return "Nutze Nintendo Network";
+		case nn::swkbd::LanguageType::Russian:
+            return "Используется Nintendo Network";
     }
 }
 
@@ -132,6 +134,8 @@ static const char *get_pretendo_message() {
             return "Usando Pretendo Network";
         case nn::swkbd::LanguageType::German:
             return "Nutze Pretendo Network";
+		case nn::swkbd::LanguageType::Russian:
+            return "Используется Pretendo Network";
     }
 }
 
