@@ -77,6 +77,7 @@ constexpr config_strings get_config_strings(nn::swkbd::LanguageType language) {
                 .restart_to_apply_action = "Redémarrer pour appliquer",
                 .need_menu_action = "Depuis le menu Wii U seulement",
             };
+
         case nn::swkbd::LanguageType::Italian:
             return {
                 .plugin_name = "Inkay",
@@ -99,6 +100,30 @@ constexpr config_strings get_config_strings(nn::swkbd::LanguageType language) {
                 .press_a_action = "Drücke A",
                 .restart_to_apply_action = "Neustarten zum Anwenden",
                 .need_menu_action = "Nur vom Wii U-Menü aus",
+            };
+
+        case nn::swkbd::LanguageType::SimplifiedChinese:
+            return {
+                .plugin_name = "Inkay",
+                .network_category = "选择网络",
+                .connect_to_network_setting = "连接到Pretendo network",
+                .other_category = "其他设置",
+                .reset_wwp_setting = "重置Wara Wara Plaza",
+                .press_a_action = "请按 A",
+                .restart_to_apply_action = "重启以应用设置",
+                .need_menu_action = "仅来自WiiU Menu"
+            };
+
+        case nn::swkbd::LanguageType::TraditionalChinese:
+            return {
+                .plugin_name = "Inkay",
+                .network_category = "選擇網路",
+                .connect_to_network_setting = "連接到Pretendo network",
+                .other_category = "其他設定",
+                .reset_wwp_setting = "重置Wara Wara Plaza",
+                .press_a_action = "請按 A",
+                .restart_to_apply_action = "重啓以套用設定",
+                .need_menu_action = "僅來自WiiU Menu"
             };
     }
 }
