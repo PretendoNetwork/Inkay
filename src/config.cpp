@@ -149,6 +149,18 @@ constexpr config_strings get_config_strings(nn::swkbd::LanguageType language) {
                     .restart_to_apply_action = "再起動して適用",
                     .need_menu_action = "WiiUメニューからのみ実行可能"
             };
+
+        case nn::swkbd::LanguageType::Dutch:
+            return {
+                    .plugin_name = "Inkay",
+                    .network_category = "Netwerkselectie",
+                    .connect_to_network_setting = "Verbind met het Pretendo-netwerk",
+                    .other_category = "Overige instellingen",
+                    .reset_wwp_setting = "Reset het Wara Wara Plaza",
+                    .press_a_action = "Druk A",
+                    .restart_to_apply_action = "Herstart om toe te passen",
+                    .need_menu_action = "Alleen vanuit het WiiU-menu"
+            };
     }
 }
 
