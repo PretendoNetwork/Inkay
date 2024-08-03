@@ -119,6 +119,8 @@ static const char *get_nintendo_network_message() {
             return "ニンテンドーネットワークを使用中";
         case nn::swkbd::LanguageType::Dutch:
             return "Nintendo Network wordt gebruikt";
+        case nn::swkbd::LanguageType::Russian:
+            return "Используется Nintendo Network";
     }
 }
 
@@ -145,6 +147,8 @@ static const char *get_pretendo_message() {
             return "Pretendoネットワークを使用中";
         case nn::swkbd::LanguageType::Dutch:
             return "Pretendo Network wordt gebruikt";
+        case nn::swkbd::LanguageType::Russian:
+            return "Используется Pretendo Network";
     }
 }
 
