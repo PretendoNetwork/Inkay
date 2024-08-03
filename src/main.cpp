@@ -44,7 +44,6 @@
 #include <nn/erreula/erreula_cpp.h>
 #include <nn/act/client_cpp.h>
 
-#include <curl/curl.h>
 #include "ca_pem.h"
 
 #include <gx2/surface.h>

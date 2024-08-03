@@ -1,14 +1,14 @@
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include <string.h>
 #include <whb/log.h>
 #include <whb/log_module.h>
 #include <whb/log_cafe.h>
 #include <whb/log_udp.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define __FILENAME_X__ (strrchr(__FILE__, '\\') ? strrchr(__FILE__, '\\') + 1 : __FILE__)
 #define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILENAME_X__)
