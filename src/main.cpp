@@ -115,6 +115,8 @@ static const char *get_nintendo_network_message() {
         case nn::swkbd::LanguageType::SimplifiedChinese:
         case nn::swkbd::LanguageType::TraditionalChinese:
             return "使用 Nintendo Network";
+        case nn::swkbd::LanguageType::Japanese:
+            return "ニンテンドーネットワークを使用中";
     }
 }
 
@@ -137,6 +139,8 @@ static const char *get_pretendo_message() {
         case nn::swkbd::LanguageType::SimplifiedChinese:
         case nn::swkbd::LanguageType::TraditionalChinese:
             return "使用 Pretendo Network";
+        case nn::swkbd::LanguageType::Japanese:
+            return "Pretendoネットワークを使用中";
     }
 }
 
