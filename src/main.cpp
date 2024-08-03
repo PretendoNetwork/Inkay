@@ -123,7 +123,7 @@ static const char *get_pretendo_message() {
     switch (get_system_language()) {
         case nn::swkbd::LanguageType::English:
         default:
-            return "Using Pretendo Network";
+            return "プレテンドネットワークに接続しました。";
         case nn::swkbd::LanguageType::Spanish:
             return "Usando Pretendo Network";
         case nn::swkbd::LanguageType::French:
