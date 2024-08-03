@@ -105,11 +105,11 @@ static const char *get_nintendo_network_message() {
         default:
             return "Using Nintendo Network";
         case nn::swkbd::LanguageType::Spanish:
+        case nn::swkbd::LanguageType::Portuguese:
+        case nn::swkbd::LanguageType::Italian:
             return "Usando Nintendo Network";
         case nn::swkbd::LanguageType::French:
             return "Sur Nintendo Network";
-        case nn::swkbd::LanguageType::Italian:
-            return "Usando Nintendo Network";
         case nn::swkbd::LanguageType::German:
             return "Nutze Nintendo Network";
         case nn::swkbd::LanguageType::SimplifiedChinese:
@@ -127,11 +127,11 @@ static const char *get_pretendo_message() {
         default:
             return "Using Pretendo Network";
         case nn::swkbd::LanguageType::Spanish:
+        case nn::swkbd::LanguageType::Portuguese:
+        case nn::swkbd::LanguageType::Italian:
             return "Usando Pretendo Network";
         case nn::swkbd::LanguageType::French:
             return "Sur Pretendo Network";
-        case nn::swkbd::LanguageType::Italian:
-            return "Usando Pretendo Network";
         case nn::swkbd::LanguageType::German:
             return "Nutze Pretendo Network";
         case nn::swkbd::LanguageType::SimplifiedChinese:

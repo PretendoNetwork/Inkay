@@ -125,6 +125,18 @@ constexpr config_strings get_config_strings(nn::swkbd::LanguageType language) {
                 .restart_to_apply_action = "重啓以套用設定",
                 .need_menu_action = "僅來自WiiU Menu"
             };
+
+        case nn::swkbd::LanguageType::Portuguese:
+            return {
+                    .plugin_name = "Inkay",
+                    .network_category = "Selecionar rede",
+                    .connect_to_network_setting = "Conecta-se à Pretendo Network",
+                    .other_category = "Outras configurações",
+                    .reset_wwp_setting = "Resetar Wara Wara Plaza",
+                    .press_a_action = "Aperte A",
+                    .restart_to_apply_action = "Reinicie para aplicar",
+                    .need_menu_action = "Apenas no menu do Wii U"
+            };
     }
 }
 
