@@ -14,3 +14,4 @@ Inkay's patches are all temporary, and only applied in-memory without modifying 
 
 ## TODO
 See [Issues](https://github.com/PretendoNetwork/Inkay/issues).
+See [Issues(Jp)](https://github.com/Rain436/Inkay-jp/issues).
