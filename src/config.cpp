@@ -88,7 +88,17 @@ constexpr config_strings get_config_strings(nn::swkbd::LanguageType language) {
                 .restart_to_apply_action = "Riavvia per applicare",
                 .need_menu_action = "Solo dal menu WiiU",
             };
-
+case nn::swkbd::LanguageType::Japance:
+            return {
+                .plugin_name = "Inkay",
+                .network_category = "ネットワークセレクション",
+                .connect_to_network_setting = "プレテンドネットワークに接続しました！",
+                .other_category = "Other settings",
+                .reset_wwp_setting = "広場をリセットする (ネットワークエラーが出た場合におすすめ)",
+                .press_a_action = "Aを押す",
+                .restart_to_apply_action = "再起動をしてください",
+                .need_menu_action = "From WiiU menu only"
+            };
         case nn::swkbd::LanguageType::German:
             return {
                 .plugin_name = "Inkay",
