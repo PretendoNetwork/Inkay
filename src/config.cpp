@@ -37,7 +37,7 @@ bool Config::need_relaunch = false;
 bool Config::unregister_task_item_pressed = false;
 bool Config::is_wiiu_menu = false;
 
-config_strings strings;
+static config_strings strings;
 
 constexpr config_strings get_config_strings(nn::swkbd::LanguageType language) {
     switch (language) {
@@ -232,10 +232,18 @@ static void unregister_task_item_on_input_cb(void *context, WUPSConfigSimplePadD
 }
 
 static int32_t unregister_task_item_get_display_value(void *context, char *out_buf, int32_t out_size) {
-    if (!Config::is_wiiu_menu)
-        strncpy(out_buf, strings.need_menu_action, out_size);
-    else
-        strncpy(out_buf, Config::unregister_task_item_pressed ? strings.restart_to_apply_action : strings.press_a_action, out_size);
+    auto string = strings.need_menu_action;
+    if (Config::is_wiiu_menu) {
+        if (Config::unregister_task_item_pressed) {
+            string = strings.restart_to_apply_action;
+        } else {
+            string = strings.press_a_action;
+        }
+    }
+
+    if ((int)string.length() > out_size - 1) return -1;
+    string.copy(out_buf, string.length());
+    out_buf[string.length()] = '\0';
 
     return 0;
 }
@@ -283,7 +291,7 @@ static WUPSConfigAPICallbackStatus ConfigMenuOpenedCallback(WUPSConfigCategoryHa
     };
 
     WUPSConfigAPIItemOptionsV2 unregisterTasksItemOptions = {
-            .displayName = strings.reset_wwp_setting,
+            .displayName = strings.reset_wwp_setting.data(),
             .context = nullptr,
             .callbacks = unregisterTasksItemCallbacks,
     };
