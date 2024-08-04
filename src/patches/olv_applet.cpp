@@ -71,7 +71,7 @@ DECL_FUNCTION(int, FSOpenFile, FSClient *client, FSCmdBlock *block, char *path, 
     const char *initialOma = "vol/content/initial.oma";
 
     if (!Config::connect_to_network) {
-        DEBUG_FUNCTION_LINE("Inkay: Miiverse patches skipped.");
+        DEBUG_FUNCTION_LINE_VERBOSE("Inkay: Miiverse patches skipped.");
         return real_FSOpenFile(client, block, path, mode, handle, error);
     }
 
@@ -80,7 +80,7 @@ DECL_FUNCTION(int, FSOpenFile, FSClient *client, FSCmdBlock *block, char *path, 
         //we do it when loading this file since it should only load once, preventing massive lag spikes as it searches all of MEM2 xD
         //WHBLogUdpInit();
 
-        DEBUG_FUNCTION_LINE("Inkay: hewwo!\n");
+        DEBUG_FUNCTION_LINE_VERBOSE("Inkay: hewwo!\n");
 
         auto olv_ok = setup_olv_libs();
         // Patch applet binary too
@@ -90,7 +90,7 @@ DECL_FUNCTION(int, FSOpenFile, FSClient *client, FSCmdBlock *block, char *path, 
     } else if (strcmp("vol/content/browser/rootca.pem", path) == 0) {
         int ret = real_FSOpenFile(client, block, path, mode, handle, error);
         rootca_pem_handle = *handle;
-        DEBUG_FUNCTION_LINE("Inkay: Found Miiverse CA, replacing...");
+        DEBUG_FUNCTION_LINE_VERBOSE("Inkay: Found Miiverse CA, replacing...");
         return ret;
     }
 
@@ -123,27 +123,6 @@ DECL_FUNCTION(FSStatus, FSCloseFile, FSClient *client, FSCmdBlock *block, FSFile
     return real_FSCloseFile(client, block, handle, errorMask);
 }
 
-DECL_FUNCTION(uint32_t, NSSLExportInternalServerCertificate, NSSLServerCertId cert, int unk, void *unk2, void *unk3) {
-    if (cert == NSSL_SERVER_CERT_THAWTE_PREMIUM_SERVER_CA) { // Martini patches
-        OSFatal("[598-0069] Please uninstall Martini patches to continue.\n" \
-                "See pretendo.network/docs/search for more info.\n\n" \
-                "Hold the POWER button for 4 seconds to shut down.\n\n"
-                "            .\n"
-                ".---------.'---.\n"
-                "'.       :    .'\n"
-                "  '.  .:::  .'\n"
-                "    '.'::'.'\n"
-                "      '||'\n"
-                "       ||\n"
-                "       ||\n"
-                "mrz    ||\n"
-                "   ---====---");
-    }
-    return real_NSSLExportInternalServerCertificate(cert, unk, unk2, unk3);
-}
-
 WUPS_MUST_REPLACE_FOR_PROCESS(FSOpenFile, WUPS_LOADER_LIBRARY_COREINIT, FSOpenFile, WUPS_FP_TARGET_PROCESS_MIIVERSE);
 WUPS_MUST_REPLACE_FOR_PROCESS(FSReadFile, WUPS_LOADER_LIBRARY_COREINIT, FSReadFile, WUPS_FP_TARGET_PROCESS_MIIVERSE);
 WUPS_MUST_REPLACE_FOR_PROCESS(FSCloseFile, WUPS_LOADER_LIBRARY_COREINIT, FSCloseFile, WUPS_FP_TARGET_PROCESS_MIIVERSE);
-WUPS_MUST_REPLACE_FOR_PROCESS(NSSLExportInternalServerCertificate, WUPS_LOADER_LIBRARY_NSYSNET,
-                              NSSLExportInternalServerCertificate, WUPS_FP_TARGET_PROCESS_MIIVERSE);

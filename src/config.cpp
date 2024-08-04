@@ -177,7 +177,7 @@ constexpr config_strings get_config_strings(nn::swkbd::LanguageType language) {
 }
 
 static void connect_to_network_changed(ConfigItemBoolean* item, bool new_value) {
-    DEBUG_FUNCTION_LINE("connect_to_network changed to: %d", new_value);
+    DEBUG_FUNCTION_LINE_VERBOSE("connect_to_network changed to: %d", new_value);
     if (new_value != Config::connect_to_network) {
         Config::need_relaunch = true;
     }

@@ -65,7 +65,9 @@ void replaceBulk(uint32_t start, uint32_t size, std::span<const replacement> rep
             }
         }
     }
+#ifdef DEBUG
     for (auto c: counts) {
         DEBUG_FUNCTION_LINE("replaced %d times", c);
     }
+#endif
 }
