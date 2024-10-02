@@ -42,159 +42,39 @@ static config_strings strings;
 config_strings get_config_strings(nn::swkbd::LanguageType language) {
     switch (language) {
         case nn::swkbd::LanguageType::English:
-        default:
-            return {
-                .plugin_name = "Inkay",
-                .network_category = "Network selection",
-                .connect_to_network_setting = "Connect to the Pretendo network",
-                .other_category = "Other settings",
-                .reset_wwp_setting = "Reset Wara Wara Plaza",
-                .press_a_action = "Press A",
-                .restart_to_apply_action = "Restart to apply",
-                .need_menu_action = "From WiiU menu only",
-                .using_nintendo_network = "Using Nintendo Network",
-                .using_pretendo_network = "Using Pretendo Network",
-            };
-
-        case nn::swkbd::LanguageType::Spanish:
-            return {
-                .plugin_name = "Inkay",
-                .network_category = "Selección de red",
-                .connect_to_network_setting = "Conectar a la red Pretendo",
-                .other_category = "Otros ajustes",
-                .reset_wwp_setting = "Restablecer Wara Wara Plaza",
-                .press_a_action = "Pulsa A",
-                .restart_to_apply_action = "Reinicia para confirmar",
-                .need_menu_action = "Sólo desde el menú de WiiU",
-                .using_nintendo_network = "Usando Nintendo Network",
-                .using_pretendo_network = "Usando Pretendo Network",
-            };
-
-        case nn::swkbd::LanguageType::French:
-            return {
-                .plugin_name = "Inkay",
-                .network_category = "Sélection du réseau",
-                .connect_to_network_setting = "Connexion à Pretendo",
-                .other_category = "Autres paramètres",
-                .reset_wwp_setting = "Réinitialiser la place WaraWara",
-                .press_a_action = "Appuyez sur A",
-                .restart_to_apply_action = "Redémarrer pour appliquer",
-                .need_menu_action = "Depuis le menu Wii U seulement",
-                .using_nintendo_network = "Sur Nintendo Network",
-                .using_pretendo_network = "Sur Pretendo Network",
-            };
-
-        case nn::swkbd::LanguageType::Italian:
-            return {
-                .plugin_name = "Inkay",
-                .network_category = "Selezione della rete",
-                .connect_to_network_setting = "Connettiti alla rete Pretendo",
-                .other_category = "Altre categorie",
-                .reset_wwp_setting = "Ripristina Wara Wara Plaza",
-                .press_a_action = "Premi A",
-                .restart_to_apply_action = "Riavvia per applicare",
-                .need_menu_action = "Solo dal menu WiiU",
-                .using_nintendo_network = "Usando Nintendo Network",
-                .using_pretendo_network = "Usando Pretendo Network",
-            };
-
-        case nn::swkbd::LanguageType::German:
-            return {
-                .plugin_name = "Inkay",
-                .network_category = "Netzwerkauswahl",
-                .connect_to_network_setting = "Verbinde zum Pretendo Network",
-                .other_category = "Andere Einstellungen",
-                .reset_wwp_setting = "Wara Wara Plaza zurücksetzen",
-                .press_a_action = "Drücke A",
-                .restart_to_apply_action = "Neustarten zum Anwenden",
-                .need_menu_action = "Nur vom Wii U-Menü aus",
-                .using_nintendo_network = "Nutze Nintendo Network",
-                .using_pretendo_network = "Nutze Pretendo Network",
-            };
-
-        case nn::swkbd::LanguageType::SimplifiedChinese:
-            return {
-                .plugin_name = "Inkay",
-                .network_category = "选择网络",
-                .connect_to_network_setting = "连接到Pretendo network",
-                .other_category = "其他设置",
-                .reset_wwp_setting = "重置Wara Wara Plaza",
-                .press_a_action = "请按 A",
-                .restart_to_apply_action = "重启以应用设置",
-                .need_menu_action = "仅来自WiiU Menu",
-                .using_nintendo_network = "使用 Nintendo Network",
-                .using_pretendo_network = "使用 Pretendo Network",
-            };
-
-        case nn::swkbd::LanguageType::TraditionalChinese:
-            return {
-                .plugin_name = "Inkay",
-                .network_category = "選擇網路",
-                .connect_to_network_setting = "連接到Pretendo network",
-                .other_category = "其他設定",
-                .reset_wwp_setting = "重置Wara Wara Plaza",
-                .press_a_action = "請按 A",
-                .restart_to_apply_action = "重啓以套用設定",
-                .need_menu_action = "僅來自WiiU Menu",
-                .using_nintendo_network = "使用 Nintendo Network",
-                .using_pretendo_network = "使用 Pretendo Network",
-            };
-
-        case nn::swkbd::LanguageType::Portuguese:
-            return {
-                    .plugin_name = "Inkay",
-                    .network_category = "Selecionar rede",
-                    .connect_to_network_setting = "Conecta-se à Pretendo Network",
-                    .other_category = "Outras configurações",
-                    .reset_wwp_setting = "Resetar Wara Wara Plaza",
-                    .press_a_action = "Aperte A",
-                    .restart_to_apply_action = "Reinicie para aplicar",
-                    .need_menu_action = "Apenas no menu do Wii U",
-                    .using_nintendo_network = "Usando Nintendo Network",
-                    .using_pretendo_network = "Usando Pretendo Network",
-            };
-
-        case nn::swkbd::LanguageType::Japanese:
-            return {
-                    .plugin_name = "Inkay",
-                    .network_category = "ネットワークの選択",
-                    .connect_to_network_setting = "Pretendoネットワークに接続",
-                    .other_category = "その他の設定",
-                    .reset_wwp_setting = "わらわら広場をリセット",
-                    .press_a_action = "Aボタンを押す",
-                    .restart_to_apply_action = "再起動して適用",
-                    .need_menu_action = "WiiUメニューからのみ実行可能",
-                    .using_nintendo_network = "ニンテンドーネットワークを使用中",
-                    .using_pretendo_network = "Pretendoネットワークを使用中",
-            };
-
-        case nn::swkbd::LanguageType::Dutch:
-            return {
-                    .plugin_name = "Inkay",
-                    .network_category = "Netwerkselectie",
-                    .connect_to_network_setting = "Verbind met het Pretendo-netwerk",
-                    .other_category = "Overige instellingen",
-                    .reset_wwp_setting = "Reset het Wara Wara Plaza",
-                    .press_a_action = "Druk A",
-                    .restart_to_apply_action = "Herstart om toe te passen",
-                    .need_menu_action = "Alleen vanuit het WiiU-menu",
-                    .using_nintendo_network = "Nintendo Network wordt gebruikt",
-                    .using_pretendo_network = "Pretendo Network wordt gebruikt",
-            };
-
-        case nn::swkbd::LanguageType::Russian:
-            return {
-                    .plugin_name = "Inkay",
-                    .network_category = "Выбор сети",
-                    .connect_to_network_setting = "Подключиться к Pretendo Network",
-                    .other_category = "Другие настройки",
-                    .reset_wwp_setting = "Сбросить Wara Wara Plaza",
-                    .press_a_action = "Нажмите A",
-                    .restart_to_apply_action = "Перезагрузите для применения изменений",
-                    .need_menu_action = "Только из меню Wii U",
-                    .using_nintendo_network = "Используется Nintendo Network",
-                    .using_pretendo_network = "Используется Pretendo Network",
-            };
+        default: return {
+#include "lang/en_US.lang"
+        };
+        case nn::swkbd::LanguageType::Spanish: return {
+#include "lang/es_ES.lang"
+        };
+        case nn::swkbd::LanguageType::French: return {
+#include "lang/fr_FR.lang"
+        };
+        case nn::swkbd::LanguageType::Italian: return {
+#include "lang/it_IT.lang"
+        };
+        case nn::swkbd::LanguageType::German: return {
+#include "lang/de_DE.lang"
+        };
+        case nn::swkbd::LanguageType::SimplifiedChinese: return {
+#include "lang/zh_CN.lang"
+        };
+        case nn::swkbd::LanguageType::TraditionalChinese: return {
+#include "lang/zh_Hant.lang"
+        };
+        case nn::swkbd::LanguageType::Portuguese: return {
+#include "lang/pt_BR.lang"
+        };
+        case nn::swkbd::LanguageType::Japanese: return {
+#include "lang/ja_JP.lang"
+        };
+        case nn::swkbd::LanguageType::Dutch: return {
+#include "lang/nl_NL.lang"
+        };
+        case nn::swkbd::LanguageType::Russian: return {
+#include "lang/ru_RU.lang"
+        };
     }
 }
 
