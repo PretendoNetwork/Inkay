@@ -6,6 +6,7 @@
 #define INKAY_CONFIG_H
 
 #include <string_view>
+#include <nn/swkbd.h>
 
 class Config {
 public:
@@ -32,6 +33,10 @@ struct config_strings {
     std::string_view press_a_action;
     std::string_view restart_to_apply_action;
     std::string_view need_menu_action;
+    std::string_view using_nintendo_network;
+    std::string_view using_pretendo_network;
 };
+
+config_strings get_config_strings(nn::swkbd::LanguageType language);
 
 #endif //INKAY_CONFIG_H

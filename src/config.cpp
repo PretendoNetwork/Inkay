@@ -39,7 +39,7 @@ bool Config::is_wiiu_menu = false;
 
 static config_strings strings;
 
-constexpr config_strings get_config_strings(nn::swkbd::LanguageType language) {
+config_strings get_config_strings(nn::swkbd::LanguageType language) {
     switch (language) {
         case nn::swkbd::LanguageType::English:
         default:
@@ -51,7 +51,9 @@ constexpr config_strings get_config_strings(nn::swkbd::LanguageType language) {
                 .reset_wwp_setting = "Reset Wara Wara Plaza",
                 .press_a_action = "Press A",
                 .restart_to_apply_action = "Restart to apply",
-                .need_menu_action = "From WiiU menu only"
+                .need_menu_action = "From WiiU menu only",
+                .using_nintendo_network = "Using Nintendo Network",
+                .using_pretendo_network = "Using Pretendo Network",
             };
 
         case nn::swkbd::LanguageType::Spanish:
@@ -64,6 +66,8 @@ constexpr config_strings get_config_strings(nn::swkbd::LanguageType language) {
                 .press_a_action = "Pulsa A",
                 .restart_to_apply_action = "Reinicia para confirmar",
                 .need_menu_action = "Sólo desde el menú de WiiU",
+                .using_nintendo_network = "Usando Nintendo Network",
+                .using_pretendo_network = "Usando Pretendo Network",
             };
 
         case nn::swkbd::LanguageType::French:
@@ -76,6 +80,8 @@ constexpr config_strings get_config_strings(nn::swkbd::LanguageType language) {
                 .press_a_action = "Appuyez sur A",
                 .restart_to_apply_action = "Redémarrer pour appliquer",
                 .need_menu_action = "Depuis le menu Wii U seulement",
+                .using_nintendo_network = "Sur Nintendo Network",
+                .using_pretendo_network = "Sur Pretendo Network",
             };
 
         case nn::swkbd::LanguageType::Italian:
@@ -88,6 +94,8 @@ constexpr config_strings get_config_strings(nn::swkbd::LanguageType language) {
                 .press_a_action = "Premi A",
                 .restart_to_apply_action = "Riavvia per applicare",
                 .need_menu_action = "Solo dal menu WiiU",
+                .using_nintendo_network = "Usando Nintendo Network",
+                .using_pretendo_network = "Usando Pretendo Network",
             };
 
         case nn::swkbd::LanguageType::German:
@@ -100,6 +108,8 @@ constexpr config_strings get_config_strings(nn::swkbd::LanguageType language) {
                 .press_a_action = "Drücke A",
                 .restart_to_apply_action = "Neustarten zum Anwenden",
                 .need_menu_action = "Nur vom Wii U-Menü aus",
+                .using_nintendo_network = "Nutze Nintendo Network",
+                .using_pretendo_network = "Nutze Pretendo Network",
             };
 
         case nn::swkbd::LanguageType::SimplifiedChinese:
@@ -111,7 +121,9 @@ constexpr config_strings get_config_strings(nn::swkbd::LanguageType language) {
                 .reset_wwp_setting = "重置Wara Wara Plaza",
                 .press_a_action = "请按 A",
                 .restart_to_apply_action = "重启以应用设置",
-                .need_menu_action = "仅来自WiiU Menu"
+                .need_menu_action = "仅来自WiiU Menu",
+                .using_nintendo_network = "使用 Nintendo Network",
+                .using_pretendo_network = "使用 Pretendo Network",
             };
 
         case nn::swkbd::LanguageType::TraditionalChinese:
@@ -123,7 +135,9 @@ constexpr config_strings get_config_strings(nn::swkbd::LanguageType language) {
                 .reset_wwp_setting = "重置Wara Wara Plaza",
                 .press_a_action = "請按 A",
                 .restart_to_apply_action = "重啓以套用設定",
-                .need_menu_action = "僅來自WiiU Menu"
+                .need_menu_action = "僅來自WiiU Menu",
+                .using_nintendo_network = "使用 Nintendo Network",
+                .using_pretendo_network = "使用 Pretendo Network",
             };
 
         case nn::swkbd::LanguageType::Portuguese:
@@ -135,7 +149,9 @@ constexpr config_strings get_config_strings(nn::swkbd::LanguageType language) {
                     .reset_wwp_setting = "Resetar Wara Wara Plaza",
                     .press_a_action = "Aperte A",
                     .restart_to_apply_action = "Reinicie para aplicar",
-                    .need_menu_action = "Apenas no menu do Wii U"
+                    .need_menu_action = "Apenas no menu do Wii U",
+                    .using_nintendo_network = "Usando Nintendo Network",
+                    .using_pretendo_network = "Usando Pretendo Network",
             };
 
         case nn::swkbd::LanguageType::Japanese:
@@ -147,7 +163,9 @@ constexpr config_strings get_config_strings(nn::swkbd::LanguageType language) {
                     .reset_wwp_setting = "わらわら広場をリセット",
                     .press_a_action = "Aボタンを押す",
                     .restart_to_apply_action = "再起動して適用",
-                    .need_menu_action = "WiiUメニューからのみ実行可能"
+                    .need_menu_action = "WiiUメニューからのみ実行可能",
+                    .using_nintendo_network = "ニンテンドーネットワークを使用中",
+                    .using_pretendo_network = "Pretendoネットワークを使用中",
             };
 
         case nn::swkbd::LanguageType::Dutch:
@@ -159,7 +177,9 @@ constexpr config_strings get_config_strings(nn::swkbd::LanguageType language) {
                     .reset_wwp_setting = "Reset het Wara Wara Plaza",
                     .press_a_action = "Druk A",
                     .restart_to_apply_action = "Herstart om toe te passen",
-                    .need_menu_action = "Alleen vanuit het WiiU-menu"
+                    .need_menu_action = "Alleen vanuit het WiiU-menu",
+                    .using_nintendo_network = "Nintendo Network wordt gebruikt",
+                    .using_pretendo_network = "Pretendo Network wordt gebruikt",
             };
 
         case nn::swkbd::LanguageType::Russian:
@@ -171,7 +191,9 @@ constexpr config_strings get_config_strings(nn::swkbd::LanguageType language) {
                     .reset_wwp_setting = "Сбросить Wara Wara Plaza",
                     .press_a_action = "Нажмите A",
                     .restart_to_apply_action = "Перезагрузите для применения изменений",
-                    .need_menu_action = "Только из меню Wii U"
+                    .need_menu_action = "Только из меню Wii U",
+                    .using_nintendo_network = "Используется Nintendo Network",
+                    .using_pretendo_network = "Используется Pretendo Network",
             };
     }
 }
