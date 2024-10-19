@@ -1,7 +1,11 @@
+.cache/
 .vscode/
 .idea/
 /build
+/plugin/build
+/dist
 *.elf
+*.wms
 *.wps
 certs/
 *.lst
