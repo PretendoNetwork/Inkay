@@ -10,7 +10,18 @@
 
 class Config {
 public:
+    static void Init();
+
+    // wups config items
     static bool connect_to_network;
+
+    // private stuff
+    static bool need_relaunch;
+
+    // private stuff
+    static bool is_wiiu_menu;
+
+    static bool unregister_task_item_pressed;
 };
 
 struct config_strings {
@@ -24,7 +35,6 @@ struct config_strings {
     std::string_view need_menu_action;
     std::string_view using_nintendo_network;
     std::string_view using_pretendo_network;
-    std::string_view multiplayer_port_display;
 };
 
 config_strings get_config_strings(nn::swkbd::LanguageType language);

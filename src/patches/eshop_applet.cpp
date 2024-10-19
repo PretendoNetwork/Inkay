@@ -21,7 +21,8 @@
 #include "utils/logger.h"
 #include "utils/replace_mem.h"
 
-#include <wups.h>
+#include <vector>
+#include <function_patcher/function_patching.h>
 #include <optional>
 #include <coreinit/debug.h>
 #include <coreinit/filesystem.h>
@@ -47,6 +48,7 @@ const char whitelist_new[] = {
 };
 
 static std::optional<FSFileHandle> rootca_pem_handle{};
+std::vector<PatchedFunctionHandle> eshop_patches;
 
 DECL_FUNCTION(int, FSOpenFile_eShop, FSClient *client, FSCmdBlock *block, char *path, const char *mode, uint32_t *handle,
               int error) {
@@ -102,6 +104,25 @@ DECL_FUNCTION(FSStatus, FSCloseFile_eShop, FSClient *client, FSCmdBlock *block, 
     return real_FSCloseFile_eShop(client, block, handle, errorMask);
 }
 
-WUPS_MUST_REPLACE_FOR_PROCESS(FSOpenFile_eShop, WUPS_LOADER_LIBRARY_COREINIT, FSOpenFile, WUPS_FP_TARGET_PROCESS_ESHOP);
-WUPS_MUST_REPLACE_FOR_PROCESS(FSReadFile_eShop, WUPS_LOADER_LIBRARY_COREINIT, FSReadFile, WUPS_FP_TARGET_PROCESS_ESHOP);
-WUPS_MUST_REPLACE_FOR_PROCESS(FSCloseFile_eShop, WUPS_LOADER_LIBRARY_COREINIT, FSCloseFile, WUPS_FP_TARGET_PROCESS_ESHOP);
+void patchEshop() {
+    eshop_patches.reserve(3);
+
+    auto add_patch = [](function_replacement_data_t repl, const char *name) {
+        PatchedFunctionHandle handle = 0;
+        if (FunctionPatcher_AddFunctionPatch(&repl, &handle, nullptr) != FUNCTION_PATCHER_RESULT_SUCCESS) {
+            DEBUG_FUNCTION_LINE("Inkay/eShop: Failed to patch %s!", name);
+        }
+        eshop_patches.push_back(handle);
+    };
+
+    add_patch(REPLACE_FUNCTION_FOR_PROCESS(FSOpenFile_eShop, LIBRARY_COREINIT, FSOpenFile, FP_TARGET_PROCESS_ESHOP), "FSOpenFile_eShop");
+    add_patch(REPLACE_FUNCTION_FOR_PROCESS(FSReadFile_eShop, LIBRARY_COREINIT, FSReadFile, FP_TARGET_PROCESS_ESHOP), "FSReadFile_eShop");
+    add_patch(REPLACE_FUNCTION_FOR_PROCESS(FSCloseFile_eShop, LIBRARY_COREINIT, FSCloseFile, FP_TARGET_PROCESS_ESHOP), "FSCloseFile_eShop");
+}
+
+void unpatchEshop() {
+    for (auto handle: eshop_patches) {
+        FunctionPatcher_RemoveFunctionPatch(handle);
+    }
+    eshop_patches.clear();
+}

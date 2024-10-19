@@ -8,10 +8,10 @@ endif
 
 TOPDIR ?= $(CURDIR)
 
-include $(DEVKITPRO)/wums/share/wums_rules
+include $(DEVKITPRO)/wups/share/wups_rules
 
-WUMS_ROOT := $(DEVKITPRO)/wums
 WUT_ROOT := $(DEVKITPRO)/wut
+WUMS_ROOT := $(DEVKITPRO)/wums
 #-------------------------------------------------------------------------------
 # TARGET is the name of the output
 # BUILD is the directory where object files & intermediate files will be placed
@@ -21,35 +21,37 @@ WUT_ROOT := $(DEVKITPRO)/wut
 #-------------------------------------------------------------------------------
 TARGET		:=	Inkay-pretendo
 BUILD		:=	build
-SOURCES		:=	src src/patches src/utils src/ext/inih
+SOURCES		:=	src src/utils
 DATA		:=	data
-INCLUDES	:=	src src/ext/inih
+INCLUDES	:=	src ../src/lang
+#DEBUG		:=	1
 
 #-------------------------------------------------------------------------------
 # options for code generation
 #-------------------------------------------------------------------------------
-CFLAGS	:=	-Wall -Wextra -O2 -ffunction-sections\
+CFLAGS	:=	-Wall -O2 -ffunction-sections -fdata-sections \
 			$(MACHDEP)
 
-CFLAGS	+=	$(INCLUDE) -D__WIIU__ -D__WUT__
+CFLAGS	+=	$(INCLUDE) -D__WIIU__ -D__WUT__ -D__WUPS__
+
+ifeq ($(DEBUG),1)
+	CFLAGS += -DDEBUG -g
+endif
 
 CXXFLAGS	:= $(CFLAGS) -std=c++20
 
 ASFLAGS	:=	-g $(ARCH)
-LDFLAGS	=	-g $(ARCH) $(RPXSPECS) -Wl,-Map,$(notdir $*.map) -T$(WUMS_ROOT)/share/libkernel.ld $(WUMSSPECS)
+LDFLAGS	=	-g $(ARCH) $(RPXSPECS) -Wl,-Map,$(notdir $*.map) -Wl,-gc-sections
 
-ifeq ($(DEBUG),1)
-CXXFLAGS += -DDEBUG -g
-CFLAGS += -DDEBUG -g
-endif
+LDFLAGS	+=	$(WUPSSPECS)
 
-LIBS	:= -lwums -lmocha -lkernel -lwut -lfunctionpatcher -lnotifications
+LIBS	:= -lwups -lwut -lnotifications
 
 #-------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level
 # containing include and lib
 #-------------------------------------------------------------------------------
-LIBDIRS	:= $(PORTLIBS) $(WUT_ROOT) $(WUMS_ROOT) $(WUT_ROOT)/usr
+LIBDIRS	:= $(PORTLIBS) $(WUMS_ROOT) $(WUPS_ROOT) $(WUT_ROOT)
 
 #-------------------------------------------------------------------------------
 # no real need to edit anything past this point unless you need to add additional
@@ -101,20 +103,14 @@ export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
 #-------------------------------------------------------------------------------
 all: $(BUILD)
 
-
 $(BUILD):
-	@[ -d $@ ] || mkdir -p $@
+	@$(shell [ ! -d $(BUILD) ] && mkdir -p $(BUILD))
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
-	@$(MAKE) --no-print-directory -C $(CURDIR)/plugin -f $(CURDIR)/plugin/Makefile
-	mkdir -p dist/
-	cp *.wms dist/
-	cp plugin/*.wps dist/
 
 #-------------------------------------------------------------------------------
 clean:
 	@echo clean ...
-	@rm -fr dist $(BUILD) $(TARGET).wms $(TARGET).elf
-	@$(MAKE) --no-print-directory -C $(CURDIR)/plugin -f $(CURDIR)/plugin/Makefile clean
+	@rm -fr $(BUILD) $(TARGET).wps $(TARGET).elf
 
 #-------------------------------------------------------------------------------
 else
@@ -125,10 +121,10 @@ DEPENDS	:=	$(OFILES:.o=.d)
 #-------------------------------------------------------------------------------
 # main targets
 #-------------------------------------------------------------------------------
-all	:	 $(OUTPUT).wms
+all	:	$(OUTPUT).wps
 
-$(OUTPUT).wms	:	$(OUTPUT).elf
-$(OUTPUT).elf	:   $(OFILES)
+$(OUTPUT).wps	:	$(OUTPUT).elf
+$(OUTPUT).elf	:	$(OFILES)
 
 $(OFILES_SRC)	: $(HFILES_BIN)
 
@@ -144,11 +140,6 @@ $(OFILES_SRC)	: $(HFILES_BIN)
 #-------------------------------------------------------------------------------
 	@echo $(notdir $<)
 	@$(bin2o)
-
-#---------------------------------------------------------------------------------
-%.o: %.s
-	@echo $(notdir $<)
-	@$(CC) -MMD -MP -MF $(DEPSDIR)/$*.d -x assembler-with-cpp $(ASFLAGS) -c $< -o $@ $(ERROR_FILTER)
 
 -include $(DEPENDS)
 
