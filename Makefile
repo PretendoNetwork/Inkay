@@ -28,7 +28,7 @@ INCLUDES	:=	src src/ext/inih
 #-------------------------------------------------------------------------------
 # options for code generation
 #-------------------------------------------------------------------------------
-CFLAGS	:=	-Wall -Wextra -O2 -ffunction-sections\
+CFLAGS	:=	-Wall -O2 -ffunction-sections\
 			$(MACHDEP)
 
 CFLAGS	+=	$(INCLUDE) -D__WIIU__ -D__WUT__
@@ -36,7 +36,7 @@ CFLAGS	+=	$(INCLUDE) -D__WIIU__ -D__WUT__
 CXXFLAGS	:= $(CFLAGS) -std=c++20
 
 ASFLAGS	:=	-g $(ARCH)
-LDFLAGS	=	-g $(ARCH) $(RPXSPECS) -Wl,-Map,$(notdir $*.map) -T$(WUMS_ROOT)/share/libkernel.ld $(WUMSSPECS)
+LDFLAGS	=	-g $(ARCH) $(RPXSPECS) -Wl,-Map,$(notdir $*.map) -Wl,-gc-sections -T$(WUMS_ROOT)/share/libkernel.ld $(WUMSSPECS)
 
 ifeq ($(DEBUG),1)
 CXXFLAGS += -DDEBUG -g
