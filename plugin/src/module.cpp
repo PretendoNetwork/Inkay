@@ -17,12 +17,22 @@
 #include "module.h"
 #include <coreinit/dynload.h>
 
+#include "config.h"
 #include "Notification.h"
 #include "utils/logger.h"
+#include "utils/sysconfig.h"
 
 static OSDynLoad_Module module;
 static void (*moduleInitialize)(bool) = nullptr;
 static InkayStatus (*moduleGetStatus)() = nullptr;
+
+static const char *get_module_not_found_message() {
+    return get_config_strings(get_system_language()).module_not_found.data();
+}
+
+static const char *get_module_init_not_found_message() {
+    return get_config_strings(get_system_language()).module_init_not_found.data();
+}
 
 void Inkay_Initialize(bool apply_patches) {
     if (module) {
@@ -31,13 +41,13 @@ void Inkay_Initialize(bool apply_patches) {
 
     if (OSDynLoad_Acquire("inkay", &module) != OS_DYNLOAD_OK) {
         DEBUG_FUNCTION_LINE("Failed to acquire module");
-        ShowNotification("Cannot find Inkay module. Ensure the Inkay module is properly installed");
+        ShowNotification(get_module_not_found_message());
         return;
     }
 
     if (OSDynLoad_FindExport(module, OS_DYNLOAD_EXPORT_FUNC, "Inkay_Initialize", reinterpret_cast<void * *>(&moduleInitialize)) != OS_DYNLOAD_OK) {
         DEBUG_FUNCTION_LINE("Failed to find initialization function");
-        ShowNotification("Cannot find Inkay module initialization function. Ensure the Inkay module is properly installed");
+        ShowNotification(get_module_init_not_found_message());
         OSDynLoad_Release(module);
         return;
     }
