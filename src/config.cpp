@@ -18,6 +18,8 @@
 #include "config.h"
 
 bool Config::connect_to_network = false;
+bool Config::initialized = false;
+bool Config::shown_uninitialized_warning = false;
 
 static config_strings strings;
 

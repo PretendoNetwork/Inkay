@@ -14,25 +14,54 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "module.h"
 #include <coreinit/dynload.h>
 
+#include "Notification.h"
 #include "utils/logger.h"
 
+static OSDynLoad_Module module;
+static void (*moduleInitialize)(bool) = nullptr;
+static InkayStatus (*moduleGetStatus)() = nullptr;
+
 void Inkay_Initialize(bool apply_patches) {
-    OSDynLoad_Module module;
-    void (*moduleInitialize)(bool) = nullptr;
+    if (module) {
+        return;
+    }
 
     if (OSDynLoad_Acquire("inkay", &module) != OS_DYNLOAD_OK) {
         DEBUG_FUNCTION_LINE("Failed to acquire module");
+        ShowNotification("Cannot find Inkay module. Ensure the Inkay module is properly installed");
         return;
     }
 
     if (OSDynLoad_FindExport(module, OS_DYNLOAD_EXPORT_FUNC, "Inkay_Initialize", reinterpret_cast<void * *>(&moduleInitialize)) != OS_DYNLOAD_OK) {
         DEBUG_FUNCTION_LINE("Failed to find initialization function");
+        ShowNotification("Cannot find Inkay module initialization function. Ensure the Inkay module is properly installed");
+        OSDynLoad_Release(module);
         return;
     }
 
     moduleInitialize(apply_patches);
+}
 
-    OSDynLoad_Release(module);
+void Inkay_Finalize() {
+    if (module) {
+        OSDynLoad_Release(module);
+        moduleInitialize = nullptr;
+        moduleGetStatus = nullptr;
+    }
+}
+
+InkayStatus Inkay_GetStatus() {
+    if (!module) {
+        return InkayStatus::Error;
+    }
+
+    if (!moduleGetStatus && OSDynLoad_FindExport(module, OS_DYNLOAD_EXPORT_FUNC, "Inkay_GetStatus", reinterpret_cast<void * *>(&moduleGetStatus)) != OS_DYNLOAD_OK) {
+        DEBUG_FUNCTION_LINE("Failed to find status function");
+        return InkayStatus::Error;
+    }
+
+    return moduleGetStatus();
 }

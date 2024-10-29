@@ -77,6 +77,7 @@ INITIALIZE_PLUGIN() {
 }
 
 DEINITIALIZE_PLUGIN() {
+    Inkay_Finalize();
     NotificationModule_DeInitLibrary();
 
     WHBLogCafeDeinit();

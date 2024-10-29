@@ -23,7 +23,3 @@ enum class InkayStatus {
 
     Error = -1     ///< Failed to retrieve the module status
 };
-
-void Inkay_Initialize(bool apply_patches);
-void Inkay_Finalize();
-InkayStatus Inkay_GetStatus();
