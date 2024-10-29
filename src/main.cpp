@@ -32,6 +32,7 @@
 #include <coreinit/title.h>
 #include <notifications/notifications.h>
 #include <utils/logger.h>
+#include "export.h"
 #include "iosu_url_patches.h"
 #include "config.h"
 #include "Notification.h"
@@ -115,7 +116,21 @@ static const char *get_pretendo_message() {
     return get_config_strings(get_system_language()).using_pretendo_network.data();
 }
 
+static InkayStatus Inkay_GetStatus() {
+    if (!Config::initialized)
+        return InkayStatus::Uninitialized;
+
+    if (Config::connect_to_network) {
+        return InkayStatus::Pretendo;
+    } else {
+        return InkayStatus::Nintendo;
+    }
+}
+
 static void Inkay_Initialize(bool apply_patches) {
+    if (Config::initialized)
+        return;
+
     //get os version
     MCPSystemVersion os_version;
     int mcp = MCP_Open();
@@ -152,10 +167,12 @@ static void Inkay_Initialize(bool apply_patches) {
         DEBUG_FUNCTION_LINE_VERBOSE("Pretendo URL and NoSSL patches applied successfully.");
 
         ShowNotification(get_pretendo_message());
+        Config::initialized = true;
     } else {
         DEBUG_FUNCTION_LINE_VERBOSE("Pretendo URL and NoSSL patches skipped.");
 
         ShowNotification(get_nintendo_network_message());
+        Config::initialized = true;
         return;
     }
 
@@ -204,6 +221,15 @@ WUMS_DEINITIALIZE() {
 WUMS_APPLICATION_STARTS() {
     DEBUG_FUNCTION_LINE_VERBOSE("Inkay " INKAY_VERSION " starting up...\n");
 
+    // TODO - Add a way to reliably check this. We can't do it here since this path gets triggered before
+    // the plugin gets initialized.
+    //
+    // if (!Config::initialized && !Config::shown_uninitialized_warning) {
+    //     DEBUG_FUNCTION_LINE("Inkay module not initialized");
+    //     ShowNotification("Inkay module was not initialized. Ensure you have the Inkay plugin loaded");
+    //     Config::shown_uninitialized_warning = true;
+    // }
+
     setup_olv_libs();
     matchmaking_notify_titleswitch();
 
@@ -217,3 +243,4 @@ WUMS_APPLICATION_ENDS() {
 }
 
 WUMS_EXPORT_FUNCTION(Inkay_Initialize);
+WUMS_EXPORT_FUNCTION(Inkay_GetStatus);

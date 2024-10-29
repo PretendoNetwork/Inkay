@@ -11,6 +11,10 @@
 class Config {
 public:
     static bool connect_to_network;
+
+    static bool initialized;
+
+    static bool shown_uninitialized_warning;
 };
 
 struct config_strings {
