@@ -10,11 +10,18 @@
 
 class Config {
 public:
+    static void Init();
+
+    // wups config items
     static bool connect_to_network;
 
-    static bool initialized;
+    // private stuff
+    static bool need_relaunch;
 
-    static bool shown_uninitialized_warning;
+    // private stuff
+    static bool is_wiiu_menu;
+
+    static bool unregister_task_item_pressed;
 };
 
 struct config_strings {

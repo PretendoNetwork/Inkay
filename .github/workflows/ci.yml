@@ -6,13 +6,13 @@ jobs:
     build-inkay:
         runs-on: ubuntu-22.04
         steps:
-            - uses: actions/checkout@v2
+            - uses: actions/checkout@v4
             - name: build toolchain container
               run: docker build . -t builder
             - uses: ammaraskar/gcc-problem-matcher@master
             - name: build Inkay
               run: docker run --rm -v ${PWD}:/app -w /app builder
-            - uses: actions/upload-artifact@master
+            - uses: actions/upload-artifact@v4
               with:
                   name: inkay
-                  path: "*.wps"
+                  path: dist/

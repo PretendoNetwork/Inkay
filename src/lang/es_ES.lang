@@ -8,3 +8,5 @@
 ,.need_menu_action="Solo desde el Menú de Wii U"
 ,.using_nintendo_network="Usando Nintendo Network"
 ,.using_pretendo_network="Usando Pretendo Network"
+,.module_not_found="No se pudo encontrar el módulo Inkay. Confirme que el módulo Inkay está instalado correctamente"
+,.module_init_not_found="No se pudo inicializar el módulo Inkay. Confirme que el módulo Inkay está instalado correctamente"

@@ -8,3 +8,5 @@
 ,.need_menu_action = "仅来自WiiU Menu"
 ,.using_nintendo_network = "使用 Nintendo Network"
 ,.using_pretendo_network = "使用 Pretendo Network"
+,.module_not_found = "Could not find Inkay module. Ensure the Inkay module is properly installed"
+,.module_init_not_found = "Could not initialize Inkay module. Ensure the Inkay module is properly installed"

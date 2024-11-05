@@ -16,8 +16,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "game_matchmaking.h"
 #include "config.h"
+#include "game_matchmaking.h"
 #include "utils/logger.h"
 
 #include "ini.h"
