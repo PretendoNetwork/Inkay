@@ -22,6 +22,7 @@
 #include <kernel/kernel.h>
 #include <coreinit/memorymap.h>
 #include <algorithm>
+#include <coreinit/cache.h>
 
 bool replace(uint32_t start, uint32_t size, const char *original_val, size_t original_val_sz, const char *new_val,
              size_t new_val_sz) {
@@ -70,4 +71,19 @@ void replaceBulk(uint32_t start, uint32_t size, std::span<const replacement> rep
         DEBUG_FUNCTION_LINE("replaced %d times", c);
     }
 #endif
+}
+
+bool replace_instruction(uint32_t *inst, uint32_t orignal_value, uint32_t new_value) {
+    if (*inst != orignal_value) return false;
+
+    KernelCopyData(
+            OSEffectiveToPhysical((uint32_t) inst),
+            OSEffectiveToPhysical((uint32_t) &new_value),
+            sizeof(new_value)
+    );
+    DCFlushRange(inst, sizeof(new_value));
+    ICInvalidateRange(inst, sizeof(new_value));
+
+    DEBUG_FUNCTION_LINE_VERBOSE("%08x is now %08x", inst, *inst);
+    return *inst == new_value;
 }

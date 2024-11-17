@@ -68,6 +68,7 @@ WUPS_USE_WUT_DEVOPTAB();
 #include <mocha/mocha.h>
 #include <function_patcher/function_patching.h>
 #include "patches/account_settings.h"
+#include "patches/game_peertopeer.h"
 #include "utils/sysconfig.h"
 
 //thanks @Gary#4139 :p
@@ -127,23 +128,9 @@ INITIALIZE_PLUGIN() {
         DEBUG_FUNCTION_LINE("NotificationModule_InitLibrary failed");
     }
 
-    //get os version
-    MCPSystemVersion os_version;
-    int mcp = MCP_Open();
-    int ret = MCP_GetSystemVersion(mcp, &os_version);
-    if (ret < 0) {
-        DEBUG_FUNCTION_LINE("getting system version failed (%d/%d)!", mcp, ret);
-        os_version = (MCPSystemVersion) {
-                .major = 5, .minor = 5, .patch = 5, .region = 'E'
-        };
-    }
-    DEBUG_FUNCTION_LINE_VERBOSE("Running on %d.%d.%d%c",
-                                os_version.major, os_version.minor, os_version.patch, os_version.region
-    );
-
     // if using pretendo then (try to) apply the ssl patches
     if (Config::connect_to_network) {
-        if (is555(os_version)) {
+        if (is555(get_console_os_version())) {
             Mocha_IOSUKernelWrite32(0xE1019F78, 0xE3A00001); // mov r0, #1
         } else {
             Mocha_IOSUKernelWrite32(0xE1019E84, 0xE3A00001); // mov r0, #1
@@ -165,8 +152,6 @@ INITIALIZE_PLUGIN() {
         ShowNotification(get_nintendo_network_message());
     }
 
-    MCP_Close(mcp);
-
     if (FunctionPatcher_InitLibrary() == FUNCTION_PATCHER_RESULT_SUCCESS) {
         install_matchmaking_patches();
     }
@@ -187,6 +172,7 @@ ON_APPLICATION_START() {
     DEBUG_FUNCTION_LINE_VERBOSE("Inkay " INKAY_VERSION " starting up...\n");
 
     setup_olv_libs();
+    peertopeer_patch();
     matchmaking_notify_titleswitch();
     patchAccountSettings();
 }
