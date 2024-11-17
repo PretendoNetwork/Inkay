@@ -20,17 +20,21 @@
 #include "wut_extra.h"
 #include "utils/logger.h"
 #include "utils/sysconfig.h"
+#include "patches/game_peertopeer.h"
 
 #include <wups.h>
 #include <wups/storage.h>
 #include <wups/config_api.h>
 #include <wups/config/WUPSConfigItemBoolean.h>
+#include <wups/config/WUPSConfigItemStub.h>
 
 #include <coreinit/title.h>
 #include <coreinit/launch.h>
 #include <sysapp/title.h>
 #include <sysapp/launch.h>
 #include <nn/act.h>
+
+#include <format>
 
 bool Config::connect_to_network = true;
 bool Config::need_relaunch = false;
@@ -173,6 +177,12 @@ static WUPSConfigAPICallbackStatus ConfigMenuOpenedCallback(WUPSConfigCategoryHa
 
     res = network_cat->add(std::move(*connect_item), err);
     if (!res) return report_error(err);
+
+    {
+        std::string multiplayer_port_text = std::vformat(strings.multiplayer_port_display, std::make_format_args(peertopeer_port()));
+        res = network_cat->add(WUPSConfigItemStub::Create(multiplayer_port_text), err);
+        if (!res) return report_error(err);
+    }
 
     res = root.add(std::move(*network_cat), err);
     if (!res) return report_error(err);

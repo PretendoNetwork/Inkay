@@ -27,7 +27,7 @@ static inline int digit(char a) {
     return a - '0';
 }
 
-static unsigned short peertopeer_port() {
+unsigned short peertopeer_port() {
     const char * serial = get_console_serial();
 
     unsigned short port = 50000 +

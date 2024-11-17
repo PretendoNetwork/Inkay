@@ -8,3 +8,4 @@
 ,.need_menu_action = "From WiiU menu only"
 ,.using_nintendo_network = "Using Nintendo Network"
 ,.using_pretendo_network = "Using Pretendo Network"
+,.multiplayer_port_display = "Using UDP port {} for multiplayer"
