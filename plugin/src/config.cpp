@@ -19,64 +19,28 @@
 
 #include "wut_extra.h"
 #include "utils/logger.h"
-#include "utils/sysconfig.h"
+#include "sysconfig.h"
+#include "lang.h"
 
 #include <wups.h>
 #include <wups/storage.h>
 #include <wups/config_api.h>
 #include <wups/config/WUPSConfigItemBoolean.h>
+#include <wups/config/WUPSConfigItemStub.h>
 
 #include <coreinit/title.h>
 #include <coreinit/launch.h>
 #include <sysapp/title.h>
 #include <sysapp/launch.h>
 #include <nn/act.h>
+#include <format>
+
+static config_strings strings;
 
 bool Config::connect_to_network = true;
 bool Config::need_relaunch = false;
 bool Config::unregister_task_item_pressed = false;
 bool Config::is_wiiu_menu = false;
-
-static config_strings strings;
-
-config_strings get_config_strings(nn::swkbd::LanguageType language) {
-    switch (language) {
-        case nn::swkbd::LanguageType::English:
-        default: return {
-#include "en_US.lang"
-        };
-        case nn::swkbd::LanguageType::Spanish: return {
-#include "es_ES.lang"
-        };
-        case nn::swkbd::LanguageType::French: return {
-#include "fr_FR.lang"
-        };
-        case nn::swkbd::LanguageType::Italian: return {
-#include "it_IT.lang"
-        };
-        case nn::swkbd::LanguageType::German: return {
-#include "de_DE.lang"
-        };
-        case nn::swkbd::LanguageType::SimplifiedChinese: return {
-#include "zh_CN.lang"
-        };
-        case nn::swkbd::LanguageType::TraditionalChinese: return {
-#include "zh_Hant.lang"
-        };
-        case nn::swkbd::LanguageType::Portuguese: return {
-#include "pt_BR.lang"
-        };
-        case nn::swkbd::LanguageType::Japanese: return {
-#include "ja_JP.lang"
-        };
-        case nn::swkbd::LanguageType::Dutch: return {
-#include "nl_NL.lang"
-        };
-        case nn::swkbd::LanguageType::Russian: return {
-#include "ru_RU.lang"
-        };
-    }
-}
 
 static WUPSConfigAPICallbackStatus report_error(WUPSConfigAPIStatus err) {
     DEBUG_FUNCTION_LINE_VERBOSE("WUPS config error: %s", WUPSConfigAPI_GetStatusStr(err));
@@ -173,6 +137,12 @@ static WUPSConfigAPICallbackStatus ConfigMenuOpenedCallback(WUPSConfigCategoryHa
 
     res = network_cat->add(std::move(*connect_item), err);
     if (!res) return report_error(err);
+
+    {
+        std::string multiplayer_port_text = std::vformat(strings.multiplayer_port_display, std::make_format_args(get_console_peertopeer_port()));
+        res = network_cat->add(WUPSConfigItemStub::Create(multiplayer_port_text), err);
+        if (!res) return report_error(err);
+    }
 
     res = root.add(std::move(*network_cat), err);
     if (!res) return report_error(err);

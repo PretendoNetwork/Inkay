@@ -75,7 +75,8 @@ WUMS_USE_WUT_DEVOPTAB();
 #include "patches/eshop_applet.h"
 #include "patches/olv_applet.h"
 #include "patches/game_peertopeer.h"
-#include "utils/sysconfig.h"
+#include "sysconfig.h"
+#include "lang.h"
 
 //thanks @Gary#4139 :p
 static void write_string(uint32_t addr, const char *str) {

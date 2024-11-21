@@ -21,9 +21,9 @@ WUT_ROOT := $(DEVKITPRO)/wut
 #-------------------------------------------------------------------------------
 TARGET		:=	Inkay-pretendo
 BUILD		:=	build
-SOURCES		:=	src src/patches src/utils src/ext/inih
+SOURCES		:=	src src/patches src/utils src/ext/inih common
 DATA		:=	data
-INCLUDES	:=	src src/ext/inih
+INCLUDES	:=	src src/ext/inih src/lang common
 
 #-------------------------------------------------------------------------------
 # options for code generation
@@ -103,7 +103,7 @@ all: $(BUILD)
 
 
 $(BUILD):
-	@[ -d $@ ] || mkdir -p $@
+	@$(shell [ ! -d $(BUILD) ] && mkdir -p $(BUILD))
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
 	@$(MAKE) --no-print-directory -C $(CURDIR)/plugin -f $(CURDIR)/plugin/Makefile
 	mkdir -p dist/

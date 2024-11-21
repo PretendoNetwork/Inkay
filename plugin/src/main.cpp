@@ -16,33 +16,12 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <stdio.h>
-#include <stdint.h>
-#include <stdlib.h>
 #include <wups.h>
-#include <optional>
-#include <nsysnet/nssl.h>
-#include <sysapp/title.h>
-#include <coreinit/cache.h>
-#include <coreinit/dynload.h>
-#include <coreinit/mcp.h>
-#include <coreinit/memory.h>
-#include <coreinit/memorymap.h>
-#include <coreinit/memexpheap.h>
-#include <coreinit/title.h>
+
 #include <notifications/notifications.h>
 #include <utils/logger.h>
 #include "config.h"
 #include "module.h"
-#include "Notification.h"
-
-#include <coreinit/filesystem.h>
-#include <cstring>
-#include <string>
-#include <nn/erreula/erreula_cpp.h>
-#include <nn/act/client_cpp.h>
-
-#include <gx2/surface.h>
 
 #define INKAY_VERSION "v2.6.0"
 
@@ -59,8 +38,6 @@ WUPS_PLUGIN_LICENSE("GPLv3");
 WUPS_USE_STORAGE("inkay");
 
 WUPS_USE_WUT_DEVOPTAB();
-
-#include "utils/sysconfig.h"
 
 INITIALIZE_PLUGIN() {
     WHBLogCafeInit();

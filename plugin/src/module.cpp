@@ -20,7 +20,8 @@
 #include "config.h"
 #include "Notification.h"
 #include "utils/logger.h"
-#include "utils/sysconfig.h"
+#include "sysconfig.h"
+#include "lang.h"
 
 static OSDynLoad_Module module;
 static void (*moduleInitialize)(bool) = nullptr;
