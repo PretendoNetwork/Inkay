@@ -15,6 +15,7 @@
 #include <coreinit/dynload.h>
 #include "game_peertopeer.h"
 
+#include "config.h"
 #include "sysconfig.h"
 #include "utils/logger.h"
 #include "utils/rpl_info.h"
@@ -44,6 +45,10 @@ static void minecraft_peertopeer_patch() {
 }
 
 void peertopeer_patch() {
+    if (!Config::connect_to_network) {
+        return;
+    }
+
     uint64_t tid = OSGetTitleID();
     if (tid == 0x00050000'101D7500 || // EUR
         tid == 0x00050000'101D9D00 || // USA
