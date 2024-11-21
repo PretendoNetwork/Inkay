@@ -102,14 +102,14 @@ static inline int digit(char a) {
     return a - '0';
 }
 
-unsigned short get_console_peertopeer_port() {
+uint16_t get_console_peertopeer_port() {
     const char * serial = get_console_serial();
 
-    unsigned short port = 50000 +
-                          (digit(serial[4]) * 1000) +
-                          (digit(serial[5]) * 100 ) +
-                          (digit(serial[6]) * 10  ) +
-                          (digit(serial[7]) * 1   );
+    uint16_t port = 50000 +
+                    (digit(serial[4]) * 1000) +
+                    (digit(serial[5]) * 100 ) +
+                    (digit(serial[6]) * 10  ) +
+                    (digit(serial[7]) * 1   );
 
     return port;
 }
