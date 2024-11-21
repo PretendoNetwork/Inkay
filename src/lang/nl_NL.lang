@@ -8,5 +8,3 @@
 ,.need_menu_action = "Alleen vanuit het WiiU-menu"
 ,.using_nintendo_network = "Nintendo Network wordt gebruikt"
 ,.using_pretendo_network = "Pretendo Network wordt gebruikt"
-,.module_not_found = "Could not find Inkay module. Ensure the Inkay module is properly installed"
-,.module_init_not_found = "Could not initialize Inkay module. Ensure the Inkay module is properly installed"
