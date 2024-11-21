@@ -21,11 +21,12 @@
 #include "utils/logger.h"
 #include "utils/replace_mem.h"
 
-#include <wups.h>
+#include <vector>
 #include <optional>
 #include <coreinit/debug.h>
 #include <coreinit/filesystem.h>
 #include <nsysnet/nssl.h>
+#include <function_patcher/function_patching.h>
 
 #include "ca_pem.h" // generated at buildtime
 
@@ -65,6 +66,7 @@ const replacement replacements[] = {
 };
 
 static std::optional<FSFileHandle> rootca_pem_handle{};
+std::vector<PatchedFunctionHandle> olv_patches;
 
 DECL_FUNCTION(int, FSOpenFile, FSClient *client, FSCmdBlock *block, char *path, const char *mode, uint32_t *handle,
               int error) {
@@ -123,6 +125,25 @@ DECL_FUNCTION(FSStatus, FSCloseFile, FSClient *client, FSCmdBlock *block, FSFile
     return real_FSCloseFile(client, block, handle, errorMask);
 }
 
-WUPS_MUST_REPLACE_FOR_PROCESS(FSOpenFile, WUPS_LOADER_LIBRARY_COREINIT, FSOpenFile, WUPS_FP_TARGET_PROCESS_MIIVERSE);
-WUPS_MUST_REPLACE_FOR_PROCESS(FSReadFile, WUPS_LOADER_LIBRARY_COREINIT, FSReadFile, WUPS_FP_TARGET_PROCESS_MIIVERSE);
-WUPS_MUST_REPLACE_FOR_PROCESS(FSCloseFile, WUPS_LOADER_LIBRARY_COREINIT, FSCloseFile, WUPS_FP_TARGET_PROCESS_MIIVERSE);
+void patchOlvApplet() {
+    olv_patches.reserve(3);
+
+    auto add_patch = [](function_replacement_data_t repl, const char *name) {
+        PatchedFunctionHandle handle = 0;
+        if (FunctionPatcher_AddFunctionPatch(&repl, &handle, nullptr) != FUNCTION_PATCHER_RESULT_SUCCESS) {
+            DEBUG_FUNCTION_LINE("Inkay/OLV: Failed to patch %s!", name);
+        }
+        olv_patches.push_back(handle);
+    };
+
+    add_patch(REPLACE_FUNCTION_FOR_PROCESS(FSOpenFile, LIBRARY_COREINIT, FSOpenFile, FP_TARGET_PROCESS_MIIVERSE), "FSOpenFile");
+    add_patch(REPLACE_FUNCTION_FOR_PROCESS(FSReadFile, LIBRARY_COREINIT, FSReadFile, FP_TARGET_PROCESS_MIIVERSE), "FSReadFile");
+    add_patch(REPLACE_FUNCTION_FOR_PROCESS(FSCloseFile, LIBRARY_COREINIT, FSCloseFile, FP_TARGET_PROCESS_MIIVERSE), "FSCloseFile");
+}
+
+void unpatchOlvApplet() {
+    for (auto handle: olv_patches) {
+        FunctionPatcher_RemoveFunctionPatch(handle);
+    }
+    olv_patches.clear();
+}

@@ -1,5 +1,4 @@
-/*  Copyright 2022 Pretendo Network contributors <pretendo.network>
-    Copyright 2022 Ash Logan <ash@heyquark.com>
+/*  Copyright 2024 Pretendo Network contributors <pretendo.network>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -15,8 +14,12 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "config.h"
+#pragma once
 
-bool Config::connect_to_network = false;
-bool Config::initialized = false;
-bool Config::shown_uninitialized_warning = false;
+enum class InkayStatus {
+    Uninitialized, ///< The module isn't initialized
+    Nintendo,      ///< The module is initialized but hasn't applied any patches
+    Pretendo,      ///< The module is initialized and has applied the Pretendo patches
+
+    Error = -1     ///< Failed to retrieve the module status
+};

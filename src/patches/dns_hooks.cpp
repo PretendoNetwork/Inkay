@@ -15,12 +15,16 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <wups.h>
 #include <netdb.h>
 
-#include "utils/logger.h"
+
 #include "config.h"
+#include "utils/logger.h"
 #include <array>
+#include <vector>
+#include <function_patcher/function_patching.h>
+
+std::vector<PatchedFunctionHandle> dns_patches;
 
 const std::pair<const char *, const char *> dns_replacements[] = {
         // NNCS servers
@@ -42,10 +46,31 @@ static const char * replace_dns_name(const char *dns_name) {
 DECL_FUNCTION(struct hostent *, gethostbyname, const char *dns_name) {
     return real_gethostbyname(replace_dns_name(dns_name));
 }
-// might need a WUPS_MUST_REPLACE_FOR_PROCESS for Friends
-WUPS_MUST_REPLACE(gethostbyname, WUPS_LOADER_LIBRARY_NSYSNET, gethostbyname);
 
 DECL_FUNCTION(int, getaddrinfo, const char *node, const char *service, const struct addrinfo *hints, struct addrinfo **res) {
     return real_getaddrinfo(replace_dns_name(node), service, hints, res);
 }
-WUPS_MUST_REPLACE(getaddrinfo, WUPS_LOADER_LIBRARY_NSYSNET, getaddrinfo);
+
+void patchDNS() {
+    dns_patches.reserve(2);
+
+    auto add_patch = [](function_replacement_data_t repl, const char *name) {
+        PatchedFunctionHandle handle = 0;
+        if (FunctionPatcher_AddFunctionPatch(&repl, &handle, nullptr) != FUNCTION_PATCHER_RESULT_SUCCESS) {
+            DEBUG_FUNCTION_LINE("Inkay/DNS: Failed to patch %s!", name);
+        }
+        dns_patches.push_back(handle);
+    };
+
+    // might need a REPLACE_FUNCTION_FOR_PROCESS for Friends
+    add_patch(REPLACE_FUNCTION(gethostbyname, LIBRARY_NSYSNET, gethostbyname), "gethostbyname");
+
+    add_patch(REPLACE_FUNCTION(getaddrinfo, LIBRARY_NSYSNET, getaddrinfo), "getaddrinfo");
+}
+
+void unpatchDNS() {
+    for (auto handle: dns_patches) {
+        FunctionPatcher_RemoveFunctionPatch(handle);
+    }
+    dns_patches.clear();
+}

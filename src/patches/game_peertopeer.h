@@ -14,4 +14,3 @@
 #pragma once
 
 void peertopeer_patch();
-unsigned short peertopeer_port();

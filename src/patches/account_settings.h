@@ -18,3 +18,4 @@
 bool isAccountSettingsTitle();
 
 bool patchAccountSettings();
+void unpatchAccountSettings();

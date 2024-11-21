@@ -19,7 +19,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include <wups.h>
+#include <wums.h>
 #include <optional>
 #include <nsysnet/nssl.h>
 #include <sysapp/title.h>
@@ -32,6 +32,7 @@
 #include <coreinit/title.h>
 #include <notifications/notifications.h>
 #include <utils/logger.h>
+#include "export.h"
 #include "iosu_url_patches.h"
 #include "config.h"
 #include "Notification.h"
@@ -54,22 +55,28 @@
     Mandatory plugin information.
     If not set correctly, the loader will refuse to use the plugin.
 **/
-WUPS_PLUGIN_NAME("Inkay");
-WUPS_PLUGIN_DESCRIPTION("Pretendo Network Patcher");
-WUPS_PLUGIN_VERSION(INKAY_VERSION);
-WUPS_PLUGIN_AUTHOR("Pretendo contributors");
-WUPS_PLUGIN_LICENSE("GPLv3");
+WUMS_MODULE_EXPORT_NAME("inkay");
+WUMS_MODULE_DESCRIPTION("Pretendo Network Patcher");
+WUMS_MODULE_VERSION(INKAY_VERSION);
+WUMS_MODULE_AUTHOR("Pretendo contributors");
+WUMS_MODULE_LICENSE("GPLv3");
 
-WUPS_USE_STORAGE("inkay");
+WUMS_DEPENDS_ON(homebrew_functionpatcher);
+WUMS_DEPENDS_ON(homebrew_kernel);
+WUMS_DEPENDS_ON(homebrew_notifications);
 
-WUPS_USE_WUT_DEVOPTAB();
+WUMS_USE_WUT_DEVOPTAB();
 
 #include <kernel/kernel.h>
 #include <mocha/mocha.h>
 #include <function_patcher/function_patching.h>
 #include "patches/account_settings.h"
+#include "patches/dns_hooks.h"
+#include "patches/eshop_applet.h"
+#include "patches/olv_applet.h"
 #include "patches/game_peertopeer.h"
-#include "utils/sysconfig.h"
+#include "sysconfig.h"
+#include "lang.h"
 
 //thanks @Gary#4139 :p
 static void write_string(uint32_t addr, const char *str) {
@@ -111,25 +118,25 @@ static const char *get_pretendo_message() {
     return get_config_strings(get_system_language()).using_pretendo_network.data();
 }
 
-INITIALIZE_PLUGIN() {
-    WHBLogCafeInit();
-    WHBLogUdpInit();
+static InkayStatus Inkay_GetStatus() {
+    if (!Config::initialized)
+        return InkayStatus::Uninitialized;
 
-    Config::Init();
-
-    auto res = Mocha_InitLibrary();
-
-    if (res != MOCHA_RESULT_SUCCESS) {
-        DEBUG_FUNCTION_LINE("Mocha init failed with code %d!", res);
-        return;
+    if (Config::connect_to_network) {
+        return InkayStatus::Pretendo;
+    } else {
+        return InkayStatus::Nintendo;
     }
+}
 
-    if (NotificationModule_InitLibrary() != NOTIFICATION_MODULE_RESULT_SUCCESS) {
-        DEBUG_FUNCTION_LINE("NotificationModule_InitLibrary failed");
-    }
+static void Inkay_Initialize(bool apply_patches) {
+    if (Config::initialized)
+    return;
 
     // if using pretendo then (try to) apply the ssl patches
-    if (Config::connect_to_network) {
+    if (apply_patches) {
+        Config::connect_to_network = true;
+
         if (is555(get_console_os_version())) {
             Mocha_IOSUKernelWrite32(0xE1019F78, 0xE3A00001); // mov r0, #1
         } else {
@@ -146,18 +153,46 @@ INITIALIZE_PLUGIN() {
         DEBUG_FUNCTION_LINE_VERBOSE("Pretendo URL and NoSSL patches applied successfully.");
 
         ShowNotification(get_pretendo_message());
+        Config::initialized = true;
     } else {
         DEBUG_FUNCTION_LINE_VERBOSE("Pretendo URL and NoSSL patches skipped.");
 
         ShowNotification(get_nintendo_network_message());
+        Config::initialized = true;
+        return;
     }
 
     if (FunctionPatcher_InitLibrary() == FUNCTION_PATCHER_RESULT_SUCCESS) {
+        patchDNS();
+        patchEshop();
+        patchOlvApplet();
         install_matchmaking_patches();
+    } else {
+        DEBUG_FUNCTION_LINE("FunctionPatcher_InitLibrary failed");
     }
 }
 
-DEINITIALIZE_PLUGIN() {
+WUMS_INITIALIZE() {
+    WHBLogCafeInit();
+    WHBLogUdpInit();
+
+    auto res = Mocha_InitLibrary();
+
+    if (res != MOCHA_RESULT_SUCCESS) {
+        DEBUG_FUNCTION_LINE("Mocha init failed with code %d!", res);
+        return;
+    }
+
+    if (NotificationModule_InitLibrary() != NOTIFICATION_MODULE_RESULT_SUCCESS) {
+        DEBUG_FUNCTION_LINE("NotificationModule_InitLibrary failed");
+    }
+}
+
+WUMS_DEINITIALIZE() {
+    unpatchDNS();
+    unpatchEshop();
+    unpatchOlvApplet();
+    unpatchAccountSettings();
     remove_matchmaking_patches();
 
     Mocha_DeInitLibrary();
@@ -168,15 +203,30 @@ DEINITIALIZE_PLUGIN() {
     WHBLogUdpDeinit();
 }
 
-ON_APPLICATION_START() {
+WUMS_APPLICATION_STARTS() {
     DEBUG_FUNCTION_LINE_VERBOSE("Inkay " INKAY_VERSION " starting up...\n");
+
+    // TODO - Add a way to reliably check this. We can't do it here since this path gets triggered before
+    // the plugin gets initialized.
+    //
+    // if (!Config::initialized && !Config::shown_uninitialized_warning) {
+    //     DEBUG_FUNCTION_LINE("Inkay module not initialized");
+    //     ShowNotification("Inkay module was not initialized. Ensure you have the Inkay plugin loaded");
+    //     Config::shown_uninitialized_warning = true;
+    // }
 
     setup_olv_libs();
     peertopeer_patch();
     matchmaking_notify_titleswitch();
-    patchAccountSettings();
+
+    if (isAccountSettingsTitle()) {
+        patchAccountSettings();
+    }
 }
 
-ON_APPLICATION_ENDS() {
+WUMS_APPLICATION_ENDS() {
 
 }
+
+WUMS_EXPORT_FUNCTION(Inkay_Initialize);
+WUMS_EXPORT_FUNCTION(Inkay_GetStatus);

@@ -16,8 +16,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "olv_urls.h"
 #include "config.h"
+#include "olv_urls.h"
 #include "utils/logger.h"
 #include "utils/replace_mem.h"
 
