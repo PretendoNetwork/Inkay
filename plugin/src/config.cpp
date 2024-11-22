@@ -142,7 +142,10 @@ static WUPSConfigAPICallbackStatus ConfigMenuOpenedCallback(WUPSConfigCategoryHa
         uint16_t port = get_console_peertopeer_port();
         char buffer[256];
         snprintf(buffer, sizeof(buffer), strings.multiplayer_port_display.data(), port);
-        res = network_cat->add(WUPSConfigItemStub::Create(buffer), err);
+        auto multiplayer_port_display = WUPSConfigItemStub::Create(buffer, err);
+        if (!multiplayer_port_display) return report_error(err);
+
+        res = network_cat->add(std::move(*multiplayer_port_display), err);
         if (!res) return report_error(err);
     }
 
