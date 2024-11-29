@@ -29,8 +29,9 @@ INCLUDES	:=	src ../src/lang ../common
 #-------------------------------------------------------------------------------
 # options for code generation
 #-------------------------------------------------------------------------------
-CFLAGS	:=	-Wall -O2 -ffunction-sections -fdata-sections \
-			$(MACHDEP)
+OPT	:=  -Os -fno-exceptions -fno-asynchronous-unwind-tables
+CFLAGS	:=	-Wall -ffunction-sections -fdata-sections \
+			$(MACHDEP) $(OPT)
 
 CFLAGS	+=	$(INCLUDE) -D__WIIU__ -D__WUT__ -D__WUPS__
 
@@ -41,7 +42,7 @@ endif
 CXXFLAGS	:= $(CFLAGS) -std=c++20
 
 ASFLAGS	:=	-g $(ARCH)
-LDFLAGS	=	-g $(ARCH) $(RPXSPECS) -Wl,-Map,$(notdir $*.map) -Wl,-gc-sections
+LDFLAGS	=	-g $(ARCH) $(OPT) $(RPXSPECS) -Wl,-Map,$(notdir $*.map) -Wl,-gc-sections -Wl,--discard-all
 
 LDFLAGS	+=	$(WUPSSPECS)
 

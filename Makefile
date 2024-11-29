@@ -28,15 +28,16 @@ INCLUDES	:=	src src/ext/inih src/lang common
 #-------------------------------------------------------------------------------
 # options for code generation
 #-------------------------------------------------------------------------------
-CFLAGS	:=	-Wall -O2 -ffunction-sections\
-			$(MACHDEP)
+OPT	:=  -Os -fno-exceptions -fno-asynchronous-unwind-tables
+CFLAGS	:=	-Wall -ffunction-sections -fdata-sections \
+			$(MACHDEP) $(OPT)
 
 CFLAGS	+=	$(INCLUDE) -D__WIIU__ -D__WUT__
 
 CXXFLAGS	:= $(CFLAGS) -std=c++20
 
 ASFLAGS	:=	-g $(ARCH)
-LDFLAGS	=	-g $(ARCH) $(RPXSPECS) -Wl,-Map,$(notdir $*.map) -Wl,-gc-sections -T$(WUMS_ROOT)/share/libkernel.ld $(WUMSSPECS)
+LDFLAGS	=	-g $(ARCH) $(OPT) $(RPXSPECS) -Wl,-Map,$(notdir $*.map) -Wl,-gc-sections -T$(WUMS_ROOT)/share/libkernel.ld $(WUMSSPECS)
 
 ifeq ($(DEBUG),1)
 CXXFLAGS += -DDEBUG -g
