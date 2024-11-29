@@ -73,17 +73,30 @@ void replaceBulk(uint32_t start, uint32_t size, std::span<const replacement> rep
 #endif
 }
 
-bool replace_instruction(uint32_t *inst, uint32_t orignal_value, uint32_t new_value) {
-    if (*inst != orignal_value) return false;
+template <typename U>
+    requires std::integral<U>
+bool replace_unsigned(U *addr, U original_value, U new_value) {
+    if (*addr != original_value) return false;
 
     KernelCopyData(
-            OSEffectiveToPhysical((uint32_t) inst),
+            OSEffectiveToPhysical((uint32_t) addr),
             OSEffectiveToPhysical((uint32_t) &new_value),
             sizeof(new_value)
     );
-    DCFlushRange(inst, sizeof(new_value));
-    ICInvalidateRange(inst, sizeof(new_value));
+    DCFlushRange(addr, sizeof(new_value));
 
     DEBUG_FUNCTION_LINE_VERBOSE("%08x is now %08x", inst, *inst);
-    return *inst == new_value;
+    return *addr == new_value;
+}
+template bool replace_unsigned<uint64_t>(uint64_t *, uint64_t, uint64_t);
+template bool replace_unsigned<uint32_t>(uint32_t *, uint32_t, uint32_t);
+template bool replace_unsigned<uint16_t>(uint16_t *, uint16_t, uint16_t);
+template bool replace_unsigned<uint8_t>(uint8_t *, uint8_t, uint8_t);
+
+bool replace_instruction(uint32_t *inst, uint32_t original_value, uint32_t new_value) {
+    bool res = replace_unsigned<uint32_t>(inst, original_value, new_value);
+    if (!res) return res;
+
+    ICInvalidateRange(inst, sizeof(new_value));
+    return true;
 }

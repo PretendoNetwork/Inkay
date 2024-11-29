@@ -19,10 +19,10 @@
 
 std::optional<OSDynLoad_NotifyData> search_for_rpl(std::string_view name);
 
-constexpr uint32_t *rpl_addr(OSDynLoad_NotifyData rpl, uint32_t cemu_addr) {
+constexpr void *rpl_addr(OSDynLoad_NotifyData rpl, uint32_t cemu_addr) {
     if (cemu_addr < 0x1000'0000) {
-        return (uint32_t *)(rpl.textAddr + cemu_addr - 0x0200'0000);
+        return (void *)(rpl.textAddr + cemu_addr - 0x0200'0000);
     } else {
-        return (uint32_t *)(rpl.dataAddr + cemu_addr - 0x1000'0000);
+        return (void *)(rpl.dataAddr + cemu_addr - 0x1000'0000);
     }
 }

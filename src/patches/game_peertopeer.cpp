@@ -22,9 +22,56 @@
 #include "utils/replace_mem.h"
 
 #include <optional>
+#include <algorithm>
+#include <string_view>
+using namespace std::string_view_literals;
+
+static struct {
+    std::array<uint64_t, 3> tid;
+    uint32_t min_port_addr;
+    uint32_t max_port_addr;
+    std::string_view rpx;
+} generic_patch_games [] = {
+    { // MARIO KART 8
+        { 0x00050000'1010ec00, 0x00050000'1010ed00, 0x00050000'1010eb00 },
+        0x101a9a52,
+        0x101a9a54,
+        "Turbo.rpx"sv,
+    },
+    { // Splatoon
+        { 0x00050000'10176900, 0x00050000'10176a00, 0x00050000'10162b00 },
+        0x101e8952,
+        0x101e8954,
+        "Gambit.rpx"sv,
+    },
+};
+
+static void generic_peertopeer_patch() {
+    uint64_t tid = OSGetTitleID();
+
+    for (const auto& patch : generic_patch_games) {
+        if (std::ranges::find(patch.tid, tid) == patch.tid.end()) continue;
+
+        std::optional<OSDynLoad_NotifyData> game = search_for_rpl(patch.rpx);
+        if (!game) {
+            DEBUG_FUNCTION_LINE("Couldn't find game rpx! (%s)", patch.rpx.data());
+            return;
+        }
+
+        auto port = get_console_peertopeer_port();
+        DEBUG_FUNCTION_LINE_VERBOSE("Will use port %d. %08x", port, game->textAddr);
+
+        auto target = (uint16_t *)rpl_addr(*game, patch.min_port_addr);
+        replace_unsigned<uint16_t>(target, 0xc000, port);
+
+        target = (uint16_t *)rpl_addr(*game, patch.max_port_addr);
+        replace_unsigned<uint16_t>(target, 0xffff, port);
+        break;
+    }
+}
 
 static void minecraft_peertopeer_patch() {
-    std::optional<OSDynLoad_NotifyData> minecraft = search_for_rpl("Minecraft.Client.rpx");
+    std::optional<OSDynLoad_NotifyData> minecraft = search_for_rpl("Minecraft.Client.rpx"sv);
     if (!minecraft) {
         DEBUG_FUNCTION_LINE("Couldn't find minecraft rpx!");
         return;
@@ -33,12 +80,12 @@ static void minecraft_peertopeer_patch() {
     auto port = get_console_peertopeer_port();
     DEBUG_FUNCTION_LINE_VERBOSE("Will use port %d. %08x", port, minecraft->textAddr);
 
-    uint32_t *target_func = rpl_addr(*minecraft, 0x03579530);
+    auto target_func = (uint32_t *)rpl_addr(*minecraft, 0x03579530);
     replace_instruction(&target_func[0], 0x3c600001, 0x3c600000);        // li r3, 0
     replace_instruction(&target_func[1], 0x3863c000, 0x60630000 | port); // ori r3, r3, port
     // blr
 
-    target_func = rpl_addr(*minecraft, 0x0357953c);
+    target_func = (uint32_t *)rpl_addr(*minecraft, 0x0357953c);
     replace_instruction(&target_func[0], 0x3c600001, 0x3c600000);        // li r3, 0
     replace_instruction(&target_func[1], 0x3863ffff, 0x60630000 | port); // ori r3, r3, port
     // blr
@@ -56,6 +103,6 @@ void peertopeer_patch() {
 
         minecraft_peertopeer_patch();
     } else {
-        DEBUG_FUNCTION_LINE_VERBOSE("Game has no p2p patches, will skip.\n");
+        generic_peertopeer_patch();
     }
 }
