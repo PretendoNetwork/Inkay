@@ -1,6 +1,6 @@
 .plugin_name="Inkay"
 ,.network_category="Sélection du réseau"
-,.connect_to_network_setting="Se connecter au réseau Pretendo"
+,.connect_to_network_setting="Se connecter au Pretendo Network"
 ,.other_category="Autres paramètres"
 ,.reset_wwp_setting="Réinitialiser la place WaraWara"
 ,.press_a_action="Appuyez sur A"
