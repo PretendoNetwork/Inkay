@@ -146,7 +146,7 @@ bool patchAccountSettings() {
 
     add_patch(REPLACE_FUNCTION_FOR_PROCESS(FSOpenFile_accSettings, LIBRARY_COREINIT, FSOpenFile, FP_TARGET_PROCESS_GAME), "FSOpenFile_accSettings");
     add_patch(REPLACE_FUNCTION_FOR_PROCESS(FSReadFile_accSettings, LIBRARY_COREINIT, FSReadFile, FP_TARGET_PROCESS_GAME), "FSReadFile_accSettings");
-    add_patch(REPLACE_FUNCTION_FOR_PROCESS(FSCloseFile_accSettings, LIBRARY_COREINIT, FSReadFile, FP_TARGET_PROCESS_GAME), "FSCloseFile_accSettings");
+    add_patch(REPLACE_FUNCTION_FOR_PROCESS(FSCloseFile_accSettings, LIBRARY_COREINIT, FSCloseFile, FP_TARGET_PROCESS_GAME), "FSCloseFile_accSettings");
         
     return true;
 }
