@@ -21,6 +21,7 @@
 #include "olv_urls.h"
 #include "utils/logger.h"
 #include "utils/replace_mem.h"
+#include "inkay_config.h"
 
 #include <function_patcher/function_patching.h>
 #include <vector>
@@ -36,21 +37,29 @@
 #define ACCOUNT_SETTINGS_TID_U 0x000500101004B100
 #define ACCOUNT_SETTINGS_TID_E 0x000500101004B200
 
-const char whitelist_original[] = {
-        0x68, 0x74, 0x74, 0x70, 0x73, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0x00, 0x00, 0x00, 0x00, 0x61, 0x63, 0x63, 0x6F, 0x75, 0x6E, 0x74, 0x2E,
-        0x6E, 0x69, 0x6E, 0x74, 0x65, 0x6E, 0x64, 0x6F, 0x2E, 0x6E, 0x65, 0x74
+struct account_settings_allowlist {
+    char scheme[16];
+    char domain[128];
+    char path[128]; // unverified
+    uint32_t flags;
 };
 
-const char whitelist_new[] = {
-        0x68, 0x74, 0x74, 0x70, 0x73, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0x00, 0x00, 0x00, 0x00, 0x61, 0x63, 0x63, 0x6F, 0x75, 0x6E, 0x74, 0x2E,
-        0x70, 0x72, 0x65, 0x74, 0x65, 0x6E, 0x64, 0x6F, 0x2E, 0x63, 0x63, 0x00
+constexpr struct account_settings_allowlist original_entry = {
+    .scheme = "https",
+    .domain = "account.nintendo.net",
+    .path = "",
+    .flags = 0x01010101,
 };
 
-const char wave_original[] = "saccount.nintendo.net";
+constexpr struct account_settings_allowlist new_entry = {
+    .scheme = "https",
+    .domain = "account." NETWORK_BASEURL,
+    .path = "",
+    .flags = 0x01010101,
+};
+constexpr char wave_original[] = "saccount.nintendo.net";
 
-const char wave_new[] =      "saccount.pretendo.cc";
+constexpr char wave_new[] =      "saccount." NETWORK_BASEURL;
 
 static bool isAccountSettingsTitle() {
     return (OSGetTitleID() != 0 && (
@@ -141,12 +150,12 @@ bool hotpatchAccountSettings() {
     DEBUG_FUNCTION_LINE_VERBOSE("Inkay: hewwo account settings!\n");
 
     if (!replace(0x10000000, 0x10000000, wave_original, sizeof(wave_original), wave_new, sizeof(wave_new))) {
-        DEBUG_FUNCTION_LINE_VERBOSE("Inkay: We didn't find the url /)>~<(\\");
+        DEBUG_FUNCTION_LINE("Inkay: We didn't find the url /)>~<(\\");
         return false;
     }
 
-    if (!replace(0x10000000, 0x10000000, whitelist_original, sizeof(whitelist_original), whitelist_new, sizeof(whitelist_new))) {
-        DEBUG_FUNCTION_LINE_VERBOSE("Inkay: We didn't find the whitelist /)>~<(\\");
+    if (!replace(0x10000000, 0x10000000, (const char *)&original_entry, sizeof(original_entry), (const char *)&new_entry, sizeof(new_entry))) {
+        DEBUG_FUNCTION_LINE("Inkay: We didn't find the whitelist /)>~<(\\");
         return false;
     }
 
