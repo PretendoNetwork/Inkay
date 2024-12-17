@@ -52,7 +52,13 @@ const char wave_original[] = "saccount.nintendo.net";
 
 const char wave_new[] =      "saccount.pretendo.cc";
 
-bool isAccountSettingsTitle();
+static bool isAccountSettingsTitle() {
+    return (OSGetTitleID() != 0 && (
+        OSGetTitleID() == ACCOUNT_SETTINGS_TID_J ||
+        OSGetTitleID() == ACCOUNT_SETTINGS_TID_U ||
+        OSGetTitleID() == ACCOUNT_SETTINGS_TID_E
+        ));
+}
 
 static std::optional<FSFileHandle> rootca_pem_handle{};
 std::vector<PatchedFunctionHandle> account_patches;
@@ -104,15 +110,25 @@ DECL_FUNCTION(FSStatus, FSCloseFile_accSettings, FSClient *client, FSCmdBlock *b
     return real_FSCloseFile_accSettings(client, block, handle, errorMask);
 }
 
-bool isAccountSettingsTitle() {
-    return (OSGetTitleID() != 0 && (
-        OSGetTitleID() == ACCOUNT_SETTINGS_TID_J ||
-        OSGetTitleID() == ACCOUNT_SETTINGS_TID_U ||
-        OSGetTitleID() == ACCOUNT_SETTINGS_TID_E
-        ));
+bool patchAccountSettings() {
+    account_patches.reserve(3);
+
+    auto add_patch = [](function_replacement_data_t repl, const char *name) {
+        PatchedFunctionHandle handle = 0;
+        if (FunctionPatcher_AddFunctionPatch(&repl, &handle, nullptr) != FUNCTION_PATCHER_RESULT_SUCCESS) {
+            DEBUG_FUNCTION_LINE("Inkay/Account: Failed to patch %s!", name);
+        }
+        account_patches.push_back(handle);
+    };
+
+    add_patch(REPLACE_FUNCTION_FOR_PROCESS(FSOpenFile_accSettings, LIBRARY_COREINIT, FSOpenFile, FP_TARGET_PROCESS_GAME), "FSOpenFile_accSettings");
+    add_patch(REPLACE_FUNCTION_FOR_PROCESS(FSReadFile_accSettings, LIBRARY_COREINIT, FSReadFile, FP_TARGET_PROCESS_GAME), "FSReadFile_accSettings");
+    add_patch(REPLACE_FUNCTION_FOR_PROCESS(FSCloseFile_accSettings, LIBRARY_COREINIT, FSCloseFile, FP_TARGET_PROCESS_GAME), "FSCloseFile_accSettings");
+        
+    return true;
 }
 
-bool patchAccountSettings() {
+bool hotpatchAccountSettings() {
     if(!isAccountSettingsTitle()) {
         return false;
     }
@@ -134,20 +150,6 @@ bool patchAccountSettings() {
         return false;
     }
 
-    account_patches.reserve(3);
-
-    auto add_patch = [](function_replacement_data_t repl, const char *name) {
-        PatchedFunctionHandle handle = 0;
-        if (FunctionPatcher_AddFunctionPatch(&repl, &handle, nullptr) != FUNCTION_PATCHER_RESULT_SUCCESS) {
-            DEBUG_FUNCTION_LINE("Inkay/Account: Failed to patch %s!", name);
-        }
-        account_patches.push_back(handle);
-    };
-
-    add_patch(REPLACE_FUNCTION_FOR_PROCESS(FSOpenFile_accSettings, LIBRARY_COREINIT, FSOpenFile, FP_TARGET_PROCESS_GAME), "FSOpenFile_accSettings");
-    add_patch(REPLACE_FUNCTION_FOR_PROCESS(FSReadFile_accSettings, LIBRARY_COREINIT, FSReadFile, FP_TARGET_PROCESS_GAME), "FSReadFile_accSettings");
-    add_patch(REPLACE_FUNCTION_FOR_PROCESS(FSCloseFile_accSettings, LIBRARY_COREINIT, FSCloseFile, FP_TARGET_PROCESS_GAME), "FSCloseFile_accSettings");
-        
     return true;
 }
 

@@ -15,7 +15,6 @@
 
 #pragma once
 
-bool isAccountSettingsTitle();
-
 bool patchAccountSettings();
+bool hotpatchAccountSettings();
 void unpatchAccountSettings();

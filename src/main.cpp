@@ -166,6 +166,7 @@ static void Inkay_Initialize(bool apply_patches) {
         patchDNS();
         patchEshop();
         patchOlvApplet();
+        patchAccountSettings();
         install_matchmaking_patches();
     } else {
         DEBUG_FUNCTION_LINE("FunctionPatcher_InitLibrary failed");
@@ -218,10 +219,7 @@ WUMS_APPLICATION_STARTS() {
     setup_olv_libs();
     peertopeer_patch();
     matchmaking_notify_titleswitch();
-
-    if (isAccountSettingsTitle()) {
-        patchAccountSettings();
-    }
+    hotpatchAccountSettings();
 }
 
 WUMS_APPLICATION_ENDS() {
