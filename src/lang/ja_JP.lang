@@ -8,6 +8,6 @@
 ,.need_menu_action="Wii Uメニューからのみ実行可能"
 ,.using_nintendo_network="ニンテンドーネットワークを選択中"
 ,.using_pretendo_network="Pretendo ネットワークを選択中"
-,.multiplayer_port_display=マルチプレイにとって UDPポート %hu を使用します
-,.module_init_not_found=Pretendo パッチに失敗しました。Aroma Updaterを使用して解決してみてください。(686-1002 Module init)
-,.module_not_found=Pretendo パッチに失敗しました。Aroma Updaterを使用して解決してみてください。(686-1001 Module missing)
+,.multiplayer_port_display="マルチプレイにとって UDPポート %hu を使用します"
+,.module_init_not_found="Pretendo パッチに失敗しました。Aroma Updaterを使用して解決してみてください。(686-1002 Module init)"
+,.module_not_found="Pretendo パッチに失敗しました。Aroma Updaterを使用して解決してみてください。(686-1001 Module missing)"
