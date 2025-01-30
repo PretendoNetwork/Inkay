@@ -20,3 +20,4 @@
 bool Config::connect_to_network = false;
 bool Config::initialized = false;
 bool Config::shown_uninitialized_warning = false;
+bool Config::plugin_is_loaded = false;

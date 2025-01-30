@@ -15,17 +15,18 @@
 */
 
 #include "module.h"
-#include <coreinit/dynload.h>
 
-#include "config.h"
 #include "Notification.h"
 #include "utils/logger.h"
 #include "sysconfig.h"
 #include "lang.h"
 
+#include <coreinit/dynload.h>
+
 static OSDynLoad_Module module;
 static void (*moduleInitialize)(bool) = nullptr;
 static InkayStatus (*moduleGetStatus)() = nullptr;
+static void (*moduleSetPluginRunning)() = nullptr;
 
 static const char *get_module_not_found_message() {
     return get_config_strings(get_system_language()).module_not_found.data();
@@ -61,6 +62,7 @@ void Inkay_Finalize() {
         OSDynLoad_Release(module);
         moduleInitialize = nullptr;
         moduleGetStatus = nullptr;
+        moduleSetPluginRunning = nullptr;
     }
 }
 
@@ -75,4 +77,17 @@ InkayStatus Inkay_GetStatus() {
     }
 
     return moduleGetStatus();
+}
+
+void Inkay_SetPluginRunning() {
+    if (!module) {
+        return;
+    }
+
+    if (!moduleSetPluginRunning && OSDynLoad_FindExport(module, OS_DYNLOAD_EXPORT_FUNC, "Inkay_SetPluginRunning", reinterpret_cast<void * *>(&moduleSetPluginRunning)) != OS_DYNLOAD_OK) {
+        DEBUG_FUNCTION_LINE("Failed to find \"Inkay_SetPluginRunning\" function");
+        return;
+    }
+
+    moduleSetPluginRunning();
 }

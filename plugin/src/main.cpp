@@ -62,7 +62,8 @@ DEINITIALIZE_PLUGIN() {
 }
 
 ON_APPLICATION_START() {
-
+    // Tell the module the plugin is running!
+    Inkay_SetPluginRunning();
 }
 
 ON_APPLICATION_ENDS() {

@@ -118,6 +118,10 @@ static const char *get_pretendo_message() {
     return get_config_strings(get_system_language()).using_pretendo_network.data();
 }
 
+static void Inkay_SetPluginRunning() {
+    Config::plugin_is_loaded = true;
+}
+
 static InkayStatus Inkay_GetStatus() {
     if (!Config::initialized)
         return InkayStatus::Uninitialized;
@@ -131,7 +135,7 @@ static InkayStatus Inkay_GetStatus() {
 
 static void Inkay_Initialize(bool apply_patches) {
     if (Config::initialized)
-    return;
+        return;
 
     // if using pretendo then (try to) apply the ssl patches
     if (apply_patches) {
@@ -177,9 +181,7 @@ WUMS_INITIALIZE() {
     WHBLogCafeInit();
     WHBLogUdpInit();
 
-    auto res = Mocha_InitLibrary();
-
-    if (res != MOCHA_RESULT_SUCCESS) {
+    if (const auto res = Mocha_InitLibrary(); res != MOCHA_RESULT_SUCCESS) {
         DEBUG_FUNCTION_LINE("Mocha init failed with code %d!", res);
         return;
     }
@@ -207,14 +209,8 @@ WUMS_DEINITIALIZE() {
 WUMS_APPLICATION_STARTS() {
     DEBUG_FUNCTION_LINE_VERBOSE("Inkay " INKAY_VERSION " starting up...\n");
 
-    // TODO - Add a way to reliably check this. We can't do it here since this path gets triggered before
-    // the plugin gets initialized.
-    //
-    // if (!Config::initialized && !Config::shown_uninitialized_warning) {
-    //     DEBUG_FUNCTION_LINE("Inkay module not initialized");
-    //     ShowNotification("Inkay module was not initialized. Ensure you have the Inkay plugin loaded");
-    //     Config::shown_uninitialized_warning = true;
-    // }
+    // Reset plugin loaded flag
+    Config::plugin_is_loaded = false;
 
     setup_olv_libs();
     peertopeer_patch();
@@ -222,9 +218,21 @@ WUMS_APPLICATION_STARTS() {
     hotpatchAccountSettings();
 }
 
-WUMS_APPLICATION_ENDS() {
+WUMS_ALL_APPLICATION_STARTS_DONE() {
+    if (Config::initialized && !Config::plugin_is_loaded) {
+        DEBUG_FUNCTION_LINE("Inkay is running but the plugin got unloaded");
+        ShowNotification("Inkay module is still running. Please restart the console to disable Pretendo.");
+        Config::shown_uninitialized_warning = true;
+    } else if (!Config::initialized && !Config::shown_uninitialized_warning) {
+        DEBUG_FUNCTION_LINE("Inkay module not initialized");
+        ShowNotification("Inkay module was not initialized. Ensure you have the Inkay plugin loaded");
+        Config::shown_uninitialized_warning = true;
+    }
+}
 
+WUMS_APPLICATION_ENDS() {
 }
 
 WUMS_EXPORT_FUNCTION(Inkay_Initialize);
 WUMS_EXPORT_FUNCTION(Inkay_GetStatus);
+WUMS_EXPORT_FUNCTION(Inkay_SetPluginRunning);
