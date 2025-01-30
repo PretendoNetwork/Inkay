@@ -33,6 +33,7 @@
 #include <sysapp/title.h>
 #include <sysapp/launch.h>
 #include <nn/act.h>
+
 #include <format>
 
 static config_strings strings;

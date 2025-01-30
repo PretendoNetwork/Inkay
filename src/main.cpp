@@ -16,22 +16,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <stdio.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <wums.h>
-#include <optional>
-#include <nsysnet/nssl.h>
-#include <sysapp/title.h>
-#include <coreinit/cache.h>
-#include <coreinit/dynload.h>
-#include <coreinit/mcp.h>
-#include <coreinit/memory.h>
-#include <coreinit/memorymap.h>
-#include <coreinit/memexpheap.h>
-#include <coreinit/title.h>
-#include <notifications/notifications.h>
-#include <utils/logger.h>
 #include "export.h"
 #include "iosu_url_patches.h"
 #include "config.h"
@@ -39,15 +23,21 @@
 #include "patches/olv_urls.h"
 #include "patches/game_matchmaking.h"
 
-#include <coreinit/filesystem.h>
-#include <cstring>
+#include <wums.h>
+
+#include <coreinit/dynload.h>
+#include <coreinit/mcp.h>
+
+#include <notifications/notifications.h>
+#include <utils/logger.h>
+
 #include <string>
-#include <nn/erreula/erreula_cpp.h>
-#include <nn/act/client_cpp.h>
+#include <optional>
+
+#include <cstring>
+#include <cstdint>
 
 #include "ca_pem.h"
-
-#include <gx2/surface.h>
 
 #define INKAY_VERSION "v2.6.0"
 
@@ -67,7 +57,6 @@ WUMS_DEPENDS_ON(homebrew_notifications);
 
 WUMS_USE_WUT_DEVOPTAB();
 
-#include <kernel/kernel.h>
 #include <mocha/mocha.h>
 #include <function_patcher/function_patching.h>
 #include "patches/account_settings.h"
