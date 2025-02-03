@@ -200,14 +200,16 @@ WUMS_APPLICATION_STARTS() {
 
     // Reset plugin loaded flag
     Config::plugin_is_loaded = false;
-
-    setup_olv_libs();
-    peertopeer_patch();
-    matchmaking_notify_titleswitch();
-    hotpatchAccountSettings();
 }
 
 WUMS_ALL_APPLICATION_STARTS_DONE() {
+    if (!Config::internal_init_done) {
+        setup_olv_libs();
+        peertopeer_patch();
+        matchmaking_notify_titleswitch();
+        hotpatchAccountSettings();
+        Config::internal_init_done = true;
+    }
     if (Config::initialized && !Config::plugin_is_loaded) {
         DEBUG_FUNCTION_LINE("Inkay is running but the plugin got unloaded");
         ShowNotification("Inkay module is still running. Please restart the console to disable Pretendo.");

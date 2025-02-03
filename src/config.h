@@ -10,6 +10,8 @@
 
 class Config {
 public:
+    static bool internal_init_done;
+
     static bool connect_to_network;
 
     static bool initialized;
