@@ -127,7 +127,7 @@ static void Inkay_Initialize(bool apply_patches) {
         return;
 
     if (Config::block_initialize) {
-        ShowNotification("Failed to init Inkay. Please restart the console to use Pretendo");
+        ShowNotification("Cannot load Inkay while the system is running. Please restart the console");
         return;
     }
 
@@ -218,7 +218,7 @@ WUMS_ALL_APPLICATION_STARTS_DONE() {
     if (Config::initialized && !Config::plugin_is_loaded) {
         DEBUG_FUNCTION_LINE("Inkay is running but the plugin got unloaded");
         if (!Config::block_initialize) {
-            ShowNotification("Inkay module is still running. Please restart the console to disable Pretendo.");
+            ShowNotification("Inkay module is still running. Please restart the console");
         }
         Config::shown_uninitialized_warning = true;
     } else if (!Config::initialized && !Config::shown_uninitialized_warning) {
