@@ -19,6 +19,8 @@ public:
     static bool shown_uninitialized_warning;
 
     static bool plugin_is_loaded;
+
+    static bool block_initialize;
 };
 
 #endif //INKAY_CONFIG_H

@@ -126,6 +126,11 @@ static void Inkay_Initialize(bool apply_patches) {
     if (Config::initialized)
         return;
 
+    if (Config::block_initialize) {
+        ShowNotification("Failed to init Inkay. Please restart the console to use Pretendo");
+        return;
+    }
+
     // if using pretendo then (try to) apply the ssl patches
     if (apply_patches) {
         Config::connect_to_network = true;
@@ -212,12 +217,17 @@ WUMS_ALL_APPLICATION_STARTS_DONE() {
     }
     if (Config::initialized && !Config::plugin_is_loaded) {
         DEBUG_FUNCTION_LINE("Inkay is running but the plugin got unloaded");
-        ShowNotification("Inkay module is still running. Please restart the console to disable Pretendo.");
+        if (!Config::block_initialize) {
+            ShowNotification("Inkay module is still running. Please restart the console to disable Pretendo.");
+        }
         Config::shown_uninitialized_warning = true;
     } else if (!Config::initialized && !Config::shown_uninitialized_warning) {
         DEBUG_FUNCTION_LINE("Inkay module not initialized");
         ShowNotification("Inkay module was not initialized. Ensure you have the Inkay plugin loaded");
         Config::shown_uninitialized_warning = true;
+    }
+    if (!Config::initialized) {
+        Config::block_initialize = true;
     }
 }
 
