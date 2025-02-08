@@ -220,11 +220,11 @@ WUMS_ALL_APPLICATION_STARTS_DONE() {
         if (!Config::block_initialize) {
             ShowNotification("Inkay module is still running. Please restart the console");
         }
-        Config::shown_uninitialized_warning = true;
-    } else if (!Config::initialized && !Config::shown_uninitialized_warning) {
+        Config::shown_warning = true;
+    } else if (!Config::initialized && !Config::shown_warning) {
         DEBUG_FUNCTION_LINE("Inkay module not initialized");
         ShowNotification("Inkay module was not initialized. Ensure you have the Inkay plugin loaded");
-        Config::shown_uninitialized_warning = true;
+        Config::shown_warning = true;
     }
     if (!Config::initialized) {
         Config::block_initialize = true;
