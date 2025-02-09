@@ -24,12 +24,12 @@
 #include "inkay_config.h"
 
 #include <function_patcher/function_patching.h>
-#include <vector>
-#include <optional>
-#include <coreinit/debug.h>
+
 #include <coreinit/filesystem.h>
 #include <coreinit/title.h>
-#include <nsysnet/nssl.h>
+
+#include <vector>
+#include <optional>
 
 #include "ca_pem.h" // generated at buildtime
 
@@ -163,7 +163,7 @@ bool hotpatchAccountSettings() {
 }
 
 void unpatchAccountSettings() {
-    for (auto handle: account_patches) {
+    for (const auto handle: account_patches) {
         FunctionPatcher_RemoveFunctionPatch(handle);
     }
     account_patches.clear();

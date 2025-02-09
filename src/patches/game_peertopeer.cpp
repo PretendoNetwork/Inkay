@@ -28,18 +28,23 @@ using namespace std::string_view_literals;
 
 static struct {
     std::array<uint64_t, 3> tid;
+    uint16_t version;
     uint32_t min_port_addr;
     uint32_t max_port_addr;
     std::string_view rpx;
-} generic_patch_games [] = {
-    { // MARIO KART 8
-        { 0x00050000'1010ec00, 0x00050000'1010ed00, 0x00050000'1010eb00 },
+} generic_patch_games[] = {
+    {
+        // MARIO KART 8
+        {0x00050000'1010ec00, 0x00050000'1010ed00, 0x00050000'1010eb00},
+        81,
         0x101a9a52,
         0x101a9a54,
         "Turbo.rpx"sv,
     },
-    { // Splatoon
-        { 0x00050000'10176900, 0x00050000'10176a00, 0x00050000'10162b00 },
+    {
+        // Splatoon
+        {0x00050000'10176900, 0x00050000'10176a00, 0x00050000'10162b00},
+        288,
         0x101e8952,
         0x101e8954,
         "Gambit.rpx"sv,
@@ -48,14 +53,28 @@ static struct {
 
 static void generic_peertopeer_patch() {
     uint64_t tid = OSGetTitleID();
+    uint16_t title_version = 0;
+    if (const auto version_opt = get_current_title_version(); !version_opt) {
+        DEBUG_FUNCTION_LINE("Failed to detect current title version");
+        return;
+    } else {
+        title_version = *version_opt;
+        DEBUG_FUNCTION_LINE("Title version detected: %d", title_version);
+    }
 
-    for (const auto& patch : generic_patch_games) {
+    for (const auto &patch: generic_patch_games) {
         if (std::ranges::find(patch.tid, tid) == patch.tid.end()) continue;
 
         std::optional<OSDynLoad_NotifyData> game = search_for_rpl(patch.rpx);
         if (!game) {
             DEBUG_FUNCTION_LINE("Couldn't find game rpx! (%s)", patch.rpx.data());
             return;
+        }
+
+        if (title_version != patch.version) {
+            DEBUG_FUNCTION_LINE("Unexpected title version. Expected %d but got %d (%s)", patch.version, title_version,
+                                patch.rpx.data());
+            continue;
         }
 
         auto port = get_console_peertopeer_port();
@@ -74,6 +93,10 @@ static void minecraft_peertopeer_patch() {
     std::optional<OSDynLoad_NotifyData> minecraft = search_for_rpl("Minecraft.Client.rpx"sv);
     if (!minecraft) {
         DEBUG_FUNCTION_LINE("Couldn't find minecraft rpx!");
+        return;
+    }
+    if (const auto version_opt = get_current_title_version(); !version_opt || *version_opt != 688) {
+        DEBUG_FUNCTION_LINE("Wrong mincecraft version detected");
         return;
     }
 
