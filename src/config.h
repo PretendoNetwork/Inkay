@@ -5,12 +5,8 @@
 #ifndef INKAY_CONFIG_H
 #define INKAY_CONFIG_H
 
-#include <string_view>
-#include <nn/swkbd.h>
-
 class Config {
 public:
-    static bool internal_init_done;
 
     static bool connect_to_network;
 

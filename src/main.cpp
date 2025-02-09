@@ -208,13 +208,12 @@ WUMS_APPLICATION_STARTS() {
 }
 
 WUMS_ALL_APPLICATION_STARTS_DONE() {
-    if (!Config::internal_init_done) {
-        setup_olv_libs();
-        peertopeer_patch();
-        matchmaking_notify_titleswitch();
-        hotpatchAccountSettings();
-        Config::internal_init_done = true;
-    }
+    // we need to do the patches here because otherwise the Config::connect_to_network flag might be set yet
+    setup_olv_libs();
+    peertopeer_patch();
+    matchmaking_notify_titleswitch();
+    hotpatchAccountSettings();
+
     if (Config::initialized && !Config::plugin_is_loaded) {
         DEBUG_FUNCTION_LINE("Inkay is running but the plugin got unloaded");
         if (!Config::block_initialize) {
