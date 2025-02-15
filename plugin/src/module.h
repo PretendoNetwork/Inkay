@@ -27,3 +27,4 @@ enum class InkayStatus {
 void Inkay_Initialize(bool apply_patches);
 void Inkay_Finalize();
 InkayStatus Inkay_GetStatus();
+void Inkay_SetPluginRunning();

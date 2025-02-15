@@ -16,6 +16,10 @@
 #include <vector>
 #include <algorithm>
 #include <string_view>
+#include <coreinit/mcp.h>
+#include <coreinit/title.h>
+
+#include "logger.h"
 
 // if we get more than like.. two callsites for this, it should really be refactored out rather than doing a fresh
 // search every time
@@ -36,4 +40,25 @@ std::optional<OSDynLoad_NotifyData> search_for_rpl(std::string_view name) {
         return std::nullopt;
 
     return *rpl;
+}
+
+std::optional<uint16_t> get_current_title_version() {
+    const auto mcpHandle = MCP_Open();
+    MCPTitleListType titleInfo;
+    int32_t res = -1;
+    const uint64_t curTitleId = OSGetTitleID();
+    if ((curTitleId & 0x0000000F00000000) == 0) {
+        res = MCP_GetTitleInfo(mcpHandle, curTitleId | 0x0000000E00000000, &titleInfo);
+    }
+    if (res != 0) {
+        res = MCP_GetTitleInfo(mcpHandle, curTitleId, &titleInfo);
+    }
+    MCP_Close(mcpHandle);
+    if (res != 0) {
+        DEBUG_FUNCTION_LINE("Failed to get title version of %016llX.", curTitleId);
+        return {};
+    }
+    MCP_Close(mcpHandle);
+    const auto tmp_result = titleInfo.titleVersion; // make the compiler happy because we access a packed struct
+    return tmp_result;
 }

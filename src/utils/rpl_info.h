@@ -26,3 +26,5 @@ constexpr void *rpl_addr(OSDynLoad_NotifyData rpl, uint32_t cemu_addr) {
         return (void *)(rpl.dataAddr + cemu_addr - 0x1000'0000);
     }
 }
+
+std::optional<uint16_t> get_current_title_version();
