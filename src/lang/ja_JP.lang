@@ -9,5 +9,5 @@
 ,.using_nintendo_network="選択済み：ニンテンドーネットワーク"
 ,.using_pretendo_network="選択済み：Pretendo ネットワーク"
 ,.multiplayer_port_display="マルチプレイに UDPポート %hu を使用します"
-,.module_init_not_found="Pretendo パッチに失敗しました。Aroma Updaterを使用して解決してみてください。(686-1002 Module init)"
 ,.module_not_found="Pretendo パッチに失敗しました。Aroma Updaterを使用して解決してみてください。(686-1001 Module missing)"
+,.module_init_not_found="Pretendo パッチに失敗しました。Aroma Updaterを使用して解決してみてください。(686-1002 Module init)"

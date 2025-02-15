@@ -8,5 +8,5 @@
 ,.need_menu_action="Alleen vanuit het WiiU-menu"
 ,.using_nintendo_network="Nintendo Network wordt gebruikt"
 ,.using_pretendo_network="Pretendo Network wordt gebruikt"
-,.module_init_not_found="Pretendo patch mislukt - gebruik Aroma Updater om het te herstellen (686-1002 Module init)"
 ,.module_not_found="Pretendo patch mislukt - gebruik Aroma Updater om het te herstellen (686-1001 Module ontbreekt)"
+,.module_init_not_found="Pretendo patch mislukt - gebruik Aroma Updater om het te herstellen (686-1002 Module init)"
