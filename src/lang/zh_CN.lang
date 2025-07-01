@@ -9,5 +9,5 @@
 ,.using_nintendo_network="使用 Nintendo Network"
 ,.using_pretendo_network="使用 Pretendo Network"
 ,.multiplayer_port_display="多人游戏使用 UDP 端口 %hu"
-,.module_not_found="Pretendo 补丁失败 - 使用 Aroma Updater 修复（686-1001 模块丢失）"
-,.module_init_not_found="Pretendo 补丁失败 - 使用 Aroma Updater 修复（686-1002 模块初始化）"
+,.module_not_found="Pretendo Network 补丁失败 - 使用 Aroma Updater 修复（686-1001 模块丢失）"
+,.module_init_not_found="Pretendo Network 补丁失败 - 使用 Aroma Updater 修复（686-1002 模块初始化）"
