@@ -9,5 +9,5 @@
 ,.using_nintendo_network="使用 Nintendo Network"
 ,.using_pretendo_network="使用 Pretendo Network"
 ,.multiplayer_port_display="Using UDP port %hu for multiplayer"
-,.module_not_found="Pretendo patch failed - use Aroma Updater to repair (686-1001 Module missing)"
-,.module_init_not_found="Pretendo patch failed - use Aroma Updater to repair (686-1002 Module init)"
+,.module_not_found="Pretendo Network patch failed - use Aroma Updater to repair (686-1001 Module missing)"
+,.module_init_not_found="Pretendo Network patch failed - use Aroma Updater to repair (686-1002 Module init)"
