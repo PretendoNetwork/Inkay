@@ -1,7 +1,25 @@
 #pragma once
 
 #include <string_view>
-#include <nn/swkbd.h>
+
+enum inkay_language {
+    Japanese = 0,
+    English,
+    French,
+    German,
+    Italian,
+    Spanish,
+    SimplifiedChinese,
+    Korean,
+    Dutch,
+    Portuguese,
+    Russian,
+    TraditionalChinese,
+    Invalid,
+    // custom ones
+    System,
+    EnUwU,
+};
 
 struct config_strings {
     const char *plugin_name;
@@ -19,4 +37,4 @@ struct config_strings {
     std::string_view module_init_not_found;
 };
 
-config_strings get_config_strings(nn::swkbd::LanguageType language);
+config_strings get_config_strings(inkay_language language);
