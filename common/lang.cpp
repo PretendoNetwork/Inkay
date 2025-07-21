@@ -40,5 +40,11 @@ config_strings get_config_strings(inkay_language language) {
         case inkay_language::Russian: return {
 #include "ru_RU.lang"
             };
+        case inkay_language::Korean: return {
+#include "ko_KR.lang"
+            };
+        case inkay_language::EnUwU: return {
+#include "en@uwu.lang"
+            };
     }
 }
