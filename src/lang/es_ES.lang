@@ -1,6 +1,6 @@
 .plugin_name="Inkay"
 ,.network_category="Seleccionar red"
-,.connect_to_network_setting="Conectar a la red Pretendo"
+,.connect_to_network_setting="Conectar a Pretendo Network"
 ,.other_category="Otros ajustes"
 ,.reset_wwp_setting="Restablecer Plaza Wara Wara"
 ,.press_a_action="Pulsa A"
