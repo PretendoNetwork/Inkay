@@ -10,7 +10,7 @@ jobs:
     build-inkay:
         runs-on: ubuntu-22.04
         steps:
-            - uses: actions/checkout@v4
+            - uses: actions/checkout@v5
             - name: build toolchain container
               run: docker build . -t builder
             - uses: ammaraskar/gcc-problem-matcher@master
