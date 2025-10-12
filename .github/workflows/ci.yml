@@ -1,4 +1,6 @@
 name: Inkay-CI
+permissions:
+  contents: read
 
 on:
 - push
