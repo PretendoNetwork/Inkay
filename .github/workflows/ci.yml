@@ -16,7 +16,7 @@ jobs:
             - uses: ammaraskar/gcc-problem-matcher@master
             - name: build Inkay
               run: docker run --rm -v ${PWD}:/app -w /app builder
-            - uses: actions/upload-artifact@v4
+            - uses: actions/upload-artifact@v5
               with:
                   name: inkay
                   path: dist/
