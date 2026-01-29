@@ -3,6 +3,7 @@
 #include <string_view>
 
 enum inkay_language {
+    // Wii U System Languages
     Japanese = 0,
     English,
     French,
@@ -16,7 +17,7 @@ enum inkay_language {
     Russian,
     TraditionalChinese,
     Invalid,
-    // custom ones
+    // Custom Languages
     System,
     EnUwU,
 };
