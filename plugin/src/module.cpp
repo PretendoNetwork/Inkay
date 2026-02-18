@@ -18,22 +18,22 @@
 
 #include "Notification.h"
 #include "utils/logger.h"
-#include "sysconfig.h"
+#include "config.h"
 #include "lang.h"
 
 #include <coreinit/dynload.h>
 
 static OSDynLoad_Module module;
-static void (*moduleInitialize)(bool) = nullptr;
+static void (*moduleInitialize)(bool, inkay_language) = nullptr;
 static InkayStatus (*moduleGetStatus)() = nullptr;
 static void (*moduleSetPluginRunning)() = nullptr;
 
 static const char *get_module_not_found_message() {
-    return get_config_strings(get_system_language()).module_not_found.data();
+    return get_config_strings(Config::current_language).module_not_found.data();
 }
 
 static const char *get_module_init_not_found_message() {
-    return get_config_strings(get_system_language()).module_init_not_found.data();
+    return get_config_strings(Config::current_language).module_init_not_found.data();
 }
 
 void Inkay_Initialize(bool apply_patches) {
@@ -54,7 +54,7 @@ void Inkay_Initialize(bool apply_patches) {
         return;
     }
 
-    moduleInitialize(apply_patches);
+    moduleInitialize(apply_patches, Config::current_language);
 }
 
 void Inkay_Finalize() {

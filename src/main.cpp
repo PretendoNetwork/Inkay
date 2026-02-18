@@ -93,18 +93,18 @@ static bool is555(MCPSystemVersion version) {
     return (version.major == 5) && (version.minor == 5) && (version.patch >= 5);
 }
 
-static const char *get_nintendo_network_message() {
+static const char *get_nintendo_network_message(inkay_language language) {
     // TL note: "Nintendo Network" is a proper noun - "Network" is part of the name
     // TL note: "Using" instead of "Connected" is deliberate - we don't know if a successful connection exists, we are
     // only specifying what we'll *attempt* to connect to
-    return get_config_strings(get_system_language()).using_nintendo_network.data();
+    return get_config_strings(language).using_nintendo_network.data();
 }
 
-static const char *get_pretendo_message() {
+static const char *get_pretendo_message(inkay_language language) {
     // TL note: "Pretendo Network" is also a proper noun - though "Pretendo" alone can refer to us as a project
     // TL note: "Using" instead of "Connected" is deliberate - we don't know if a successful connection exists, we are
     // only specifying what we'll *attempt* to connect to
-    return get_config_strings(get_system_language()).using_pretendo_network.data();
+    return get_config_strings(language).using_pretendo_network.data();
 }
 
 static void Inkay_SetPluginRunning() {
@@ -122,7 +122,7 @@ static InkayStatus Inkay_GetStatus() {
     }
 }
 
-static void Inkay_Initialize(bool apply_patches) {
+static void Inkay_Initialize(bool apply_patches, inkay_language language) {
     if (Config::initialized)
         return;
 
@@ -150,12 +150,12 @@ static void Inkay_Initialize(bool apply_patches) {
 
         DEBUG_FUNCTION_LINE_VERBOSE("Pretendo URL and NoSSL patches applied successfully.");
 
-        ShowNotification(get_pretendo_message());
+        ShowNotification(get_pretendo_message(language));
         Config::initialized = true;
     } else {
         DEBUG_FUNCTION_LINE_VERBOSE("Pretendo URL and NoSSL patches skipped.");
 
-        ShowNotification(get_nintendo_network_message());
+        ShowNotification(get_nintendo_network_message(language));
         Config::initialized = true;
         return;
     }
