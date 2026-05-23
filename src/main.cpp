@@ -122,9 +122,11 @@ static InkayStatus Inkay_GetStatus() {
     }
 }
 
-static void Inkay_Initialize(bool apply_patches, inkay_language language) {
+static void Inkay_Initialize(bool apply_patches, bool show_startup_toast, inkay_language language) {
     if (Config::initialized)
         return;
+
+    Config::show_startup_toast = show_startup_toast;
 
     if (Config::block_initialize) {
         ShowNotification("Cannot load Inkay while the system is running. Please restart the console");
@@ -150,12 +152,16 @@ static void Inkay_Initialize(bool apply_patches, inkay_language language) {
 
         DEBUG_FUNCTION_LINE_VERBOSE("Pretendo URL and NoSSL patches applied successfully.");
 
-        ShowNotification(get_pretendo_message(language));
+        if (Config::show_startup_toast) {
+            ShowNotification(get_pretendo_message(language));
+        }
         Config::initialized = true;
     } else {
         DEBUG_FUNCTION_LINE_VERBOSE("Pretendo URL and NoSSL patches skipped.");
 
-        ShowNotification(get_nintendo_network_message(language));
+        if(Config::show_startup_toast) {
+            ShowNotification(get_nintendo_network_message(language));
+        }
         Config::initialized = true;
         return;
     }

@@ -26,6 +26,7 @@ struct config_strings {
     const char *plugin_name;
     std::string_view network_category;
     std::string_view connect_to_network_setting;
+    std::string_view show_startup_toast_setting;
     std::string_view other_category;
     std::string_view reset_wwp_setting;
     std::string_view press_a_action;

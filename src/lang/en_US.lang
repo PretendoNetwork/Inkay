@@ -1,6 +1,7 @@
 .plugin_name="Inkay"
 ,.network_category="Network selection"
 ,.connect_to_network_setting="Connect to Pretendo Network"
+,.show_startup_toast_setting="Show startup toast"
 ,.other_category="Other settings"
 ,.reset_wwp_setting="Reset Wara Wara Plaza"
 ,.press_a_action="Press A"

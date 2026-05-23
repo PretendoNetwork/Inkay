@@ -10,6 +10,8 @@ public:
 
     static bool connect_to_network;
 
+    static bool show_startup_toast;
+
     static bool initialized;
 
     static bool shown_warning;
