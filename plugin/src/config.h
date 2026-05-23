@@ -12,6 +12,8 @@ public:
     // wups config items
     static bool connect_to_network;
 
+    static bool show_startup_toast;
+
     // private stuff
     static bool need_relaunch;
 

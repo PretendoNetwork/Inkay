@@ -39,6 +39,7 @@
 static config_strings strings;
 
 bool Config::connect_to_network = true;
+bool Config::show_startup_toast = true;
 bool Config::need_relaunch = false;
 bool Config::unregister_task_item_pressed = false;
 bool Config::is_wiiu_menu = false;
@@ -61,6 +62,15 @@ static void connect_to_network_changed(ConfigItemBoolean* item, bool new_value) 
 
     WUPSStorageError res;
     res = WUPSStorageAPI::Store<bool>("connect_to_network", Config::connect_to_network);
+    if (res != WUPS_STORAGE_ERROR_SUCCESS) return report_storage_error(res);
+}
+
+static void show_startup_toast_changed(ConfigItemBoolean* item, bool new_value) {
+    DEBUG_FUNCTION_LINE_VERBOSE("show_startup_toast changed to: %d", new_value);
+    Config::show_startup_toast = new_value;
+
+    WUPSStorageError res;
+    res = WUPSStorageAPI::Store<bool>("show_startup_toast", Config::show_startup_toast);
     if (res != WUPS_STORAGE_ERROR_SUCCESS) return report_storage_error(res);
 }
 
@@ -156,6 +166,9 @@ static WUPSConfigAPICallbackStatus ConfigMenuOpenedCallback(WUPSConfigCategoryHa
     auto other_cat = WUPSConfigCategory::Create(strings.other_category, err);
     if (!other_cat) return report_error(err);
 
+    auto startup_toast_item = WUPSConfigItemBoolean::Create("show_startup_toast", strings.show_startup_toast_setting, true, Config::show_startup_toast, &show_startup_toast_changed, err);
+    if (!startup_toast_item) return report_error(err);
+
     WUPSConfigAPIItemCallbacksV2 unregisterTasksItemCallbacks = {
             .getCurrentValueDisplay = unregister_task_item_get_display_value,
             .getCurrentValueSelectedDisplay = unregister_task_item_get_display_value,
@@ -180,6 +193,9 @@ static WUPSConfigAPICallbackStatus ConfigMenuOpenedCallback(WUPSConfigCategoryHa
 
     err = WUPSConfigAPI_Category_AddItem(other_cat->getHandle(), unregisterTasksItem);
     if (err != WUPSCONFIG_API_RESULT_SUCCESS) return report_error(err);
+
+    res = other_cat->add(std::move(*startup_toast_item), err);
+    if (!res) return report_error(err);
 
     res = root.add(std::move(*other_cat), err);
     if (!res) return report_error(err);
@@ -210,7 +226,7 @@ void Config::Init() {
     if (cres != WUPSCONFIG_API_RESULT_SUCCESS) return (void)report_error(cres);
 
     WUPSStorageError res;
-    // Try to get value from storage
+    // Try to get values from storage
     res = WUPSStorageAPI::Get<bool>("connect_to_network", Config::connect_to_network);
     if (res == WUPS_STORAGE_ERROR_NOT_FOUND) {
         DEBUG_FUNCTION_LINE("Connect to network value not found, attempting to migrate/create");
@@ -224,6 +240,16 @@ void Config::Init() {
     
         // Add the value to the storage if it's missing.
         res = WUPSStorageAPI::Store<bool>("connect_to_network", connect_to_network);
+        if (res != WUPS_STORAGE_ERROR_SUCCESS) return report_storage_error(res);
+    }
+    else if (res != WUPS_STORAGE_ERROR_SUCCESS) return report_storage_error(res);
+
+    res = WUPSStorageAPI::Get<bool>("show_startup_toast", Config::show_startup_toast);
+    if (res == WUPS_STORAGE_ERROR_NOT_FOUND) {
+        DEBUG_FUNCTION_LINE("Show startup toast value not found, attempting to create");
+    
+        // Add the value to the storage if it's missing.
+        res = WUPSStorageAPI::Store<bool>("show_startup_toast", show_startup_toast);
         if (res != WUPS_STORAGE_ERROR_SUCCESS) return report_storage_error(res);
     }
     else if (res != WUPS_STORAGE_ERROR_SUCCESS) return report_storage_error(res);

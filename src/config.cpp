@@ -18,6 +18,7 @@
 #include "config.h"
 
 bool Config::connect_to_network = false;
+bool Config::show_startup_toast = false;
 bool Config::initialized = false;
 bool Config::shown_warning = false;
 bool Config::plugin_is_loaded = false;

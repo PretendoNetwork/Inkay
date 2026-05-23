@@ -24,7 +24,7 @@
 #include <coreinit/dynload.h>
 
 static OSDynLoad_Module module;
-static void (*moduleInitialize)(bool) = nullptr;
+static void (*moduleInitialize)(bool, bool) = nullptr;
 static InkayStatus (*moduleGetStatus)() = nullptr;
 static void (*moduleSetPluginRunning)() = nullptr;
 
@@ -36,7 +36,7 @@ static const char *get_module_init_not_found_message() {
     return get_config_strings(get_system_language()).module_init_not_found.data();
 }
 
-void Inkay_Initialize(bool apply_patches) {
+void Inkay_Initialize(bool apply_patches, bool show_startup_toast) {
     if (module) {
         return;
     }
@@ -54,7 +54,7 @@ void Inkay_Initialize(bool apply_patches) {
         return;
     }
 
-    moduleInitialize(apply_patches);
+    moduleInitialize(apply_patches, show_startup_toast);
 }
 
 void Inkay_Finalize() {
