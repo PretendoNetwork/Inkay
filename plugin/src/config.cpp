@@ -25,6 +25,7 @@
 #include <wups.h>
 #include <wups/storage.h>
 #include <wups/config_api.h>
+#include <wups/config/WUPSConfigItemMultipleValues.h>
 #include <wups/config/WUPSConfigItemBoolean.h>
 #include <wups/config/WUPSConfigItemStub.h>
 
@@ -43,6 +44,8 @@ bool Config::show_startup_toast = true;
 bool Config::need_relaunch = false;
 bool Config::unregister_task_item_pressed = false;
 bool Config::is_wiiu_menu = false;
+uint32_t Config::language = 13;
+inkay_language Config::current_language = English;
 
 static WUPSConfigAPICallbackStatus report_error(WUPSConfigAPIStatus err) {
     DEBUG_FUNCTION_LINE_VERBOSE("WUPS config error: %s", WUPSConfigAPI_GetStatusStr(err));
@@ -62,6 +65,21 @@ static void connect_to_network_changed(ConfigItemBoolean* item, bool new_value) 
 
     WUPSStorageError res;
     res = WUPSStorageAPI::Store<bool>("connect_to_network", Config::connect_to_network);
+    if (res != WUPS_STORAGE_ERROR_SUCCESS) return report_storage_error(res);
+}
+
+static void language_changed(ConfigItemMultipleValues* item, uint32_t new_value) {
+    DEBUG_FUNCTION_LINE_VERBOSE("language changed to: %d", new_value);
+    if (new_value != Config::language) {
+        if (new_value == inkay_language::System)
+            Config::current_language = (inkay_language)get_system_language();
+        else
+            Config::current_language = (inkay_language)new_value;
+    }
+    Config::language = new_value;
+
+    WUPSStorageError res;
+    res = WUPSStorageAPI::Store<int>("language", Config::language);
     if (res != WUPS_STORAGE_ERROR_SUCCESS) return report_storage_error(res);
 }
 
@@ -134,7 +152,7 @@ static WUPSConfigAPICallbackStatus ConfigMenuOpenedCallback(WUPSConfigCategoryHa
     Config::is_wiiu_menu = (current_title_id == wiiu_menu_tid);
 
     // get translation strings
-    strings = get_config_strings(get_system_language());
+    strings = get_config_strings(Config::current_language);
 
     // create root config category
     WUPSConfigCategory root = WUPSConfigCategory(rootHandle);
@@ -194,8 +212,32 @@ static WUPSConfigAPICallbackStatus ConfigMenuOpenedCallback(WUPSConfigCategoryHa
     err = WUPSConfigAPI_Category_AddItem(other_cat->getHandle(), unregisterTasksItem);
     if (err != WUPSCONFIG_API_RESULT_SUCCESS) return report_error(err);
 
+    constexpr WUPSConfigItemMultipleValues::ValuePair languages[] = {
+        {0, "Japanese"},
+        {1, "English"},
+        {2, "French"},
+        {3, "German"},
+        {4, "Italian"},
+        {5, "Spanish"},
+        {6, "Simplified Chinese"},
+        {7, "Korean"},
+        {8, "Dutch"},
+        {9, "Portuguese"},
+        {10, "Russian"},
+        {11, "Traditional Chinese"},
+        {13, "System"},
+        {14, "English (UwU)"},
+    };
+
+    auto language_item = WUPSConfigItemMultipleValues::CreateFromValue("language", "Language", 13, Config::language, languages, &language_changed, err);
+    if (!language_item) return report_error(err);
+
+    res = other_cat->add(std::move(*language_item), err);
+    if (!res) return report_error(err);
+
     res = other_cat->add(std::move(*startup_toast_item), err);
     if (!res) return report_error(err);
+
 
     res = root.add(std::move(*other_cat), err);
     if (!res) return report_error(err);
@@ -244,6 +286,16 @@ void Config::Init() {
     }
     else if (res != WUPS_STORAGE_ERROR_SUCCESS) return report_storage_error(res);
 
+    res = WUPSStorageAPI::Get<uint32_t>("language", Config::language);
+    if (res == WUPS_STORAGE_ERROR_NOT_FOUND) {
+        DEBUG_FUNCTION_LINE("Language value not found, attempting to create");
+
+        // Add the value to the storage.
+        res = WUPSStorageAPI::Store<uint32_t>("language", Config::language);
+        if (res != WUPS_STORAGE_ERROR_SUCCESS) return report_storage_error(res);
+    }
+    else if (res != WUPS_STORAGE_ERROR_SUCCESS) return report_storage_error(res);
+  
     res = WUPSStorageAPI::Get<bool>("show_startup_toast", Config::show_startup_toast);
     if (res == WUPS_STORAGE_ERROR_NOT_FOUND) {
         DEBUG_FUNCTION_LINE("Show startup toast value not found, attempting to create");
@@ -253,6 +305,12 @@ void Config::Init() {
         if (res != WUPS_STORAGE_ERROR_SUCCESS) return report_storage_error(res);
     }
     else if (res != WUPS_STORAGE_ERROR_SUCCESS) return report_storage_error(res);
+
+    // Set the language that's currently used
+    if (Config::language == inkay_language::System)
+        Config::current_language = (inkay_language)get_system_language();
+    else
+        Config::current_language = (inkay_language)Config::language;
 
     // Save storage
     res = WUPSStorageAPI::SaveStorage();
