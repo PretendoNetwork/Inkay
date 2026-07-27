@@ -48,7 +48,7 @@ void Inkay_Initialize(bool apply_patches, bool show_startup_toast) {
     }
 
     if (OSDynLoad_FindExport(module, OS_DYNLOAD_EXPORT_FUNC, "Inkay_Initialize", reinterpret_cast<void * *>(&moduleInitialize)) != OS_DYNLOAD_OK) {
-        DEBUG_FUNCTION_LINE("Failed to find initialization function");
+        DEBUG_FUNCTION_LINE("Failed to find function %s", "Inkay_Initialize");
         ShowNotification(get_module_init_not_found_message());
         OSDynLoad_Release(module);
         return;
@@ -72,7 +72,7 @@ InkayStatus Inkay_GetStatus() {
     }
 
     if (!moduleGetStatus && OSDynLoad_FindExport(module, OS_DYNLOAD_EXPORT_FUNC, "Inkay_GetStatus", reinterpret_cast<void * *>(&moduleGetStatus)) != OS_DYNLOAD_OK) {
-        DEBUG_FUNCTION_LINE("Failed to find status function");
+        DEBUG_FUNCTION_LINE("Failed to find function %s", "Inkay_GetStatus");
         return InkayStatus::Error;
     }
 
@@ -85,7 +85,7 @@ void Inkay_SetPluginRunning() {
     }
 
     if (!moduleSetPluginRunning && OSDynLoad_FindExport(module, OS_DYNLOAD_EXPORT_FUNC, "Inkay_SetPluginRunning", reinterpret_cast<void * *>(&moduleSetPluginRunning)) != OS_DYNLOAD_OK) {
-        DEBUG_FUNCTION_LINE("Failed to find \"Inkay_SetPluginRunning\" function");
+        DEBUG_FUNCTION_LINE("Failed to find function %s", "Inkay_SetPluginRunning");
         return;
     }
 
