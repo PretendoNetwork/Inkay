@@ -11,3 +11,4 @@
 ,.multiplayer_port_display="Используем UDP-порт %hu для сетевой игры"
 ,.module_not_found="Ошибка установки патча Pretendo - для восстановления, запустите Aroma Updater (686-1001 Модуль отсутствует)"
 ,.module_init_not_found="Ошибка установки патча Pretendo - для восстановления, запустите Aroma Updater (686-1002 Инициализация модуля)"
+,.language_name="Русский язык"

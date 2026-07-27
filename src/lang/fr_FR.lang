@@ -11,3 +11,4 @@
 ,.multiplayer_port_display="Le port UDP %hu sera utilisé pour le multijoueur"
 ,.module_not_found="Le patch Pretendo Network a rencontré un problème, veuillez le réparer avec Aroma Updater (686-1001 Module missing)"
 ,.module_init_not_found="Le patch Pretendo Network a rencontré un problème, veuillez le réparer avec Aroma Updater (686-1002 Module init)"
+,.language_name="Français"

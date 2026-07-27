@@ -11,3 +11,4 @@
 ,.multiplayer_port_display="Nutze UDP Port %hu für Mehrspieler"
 ,.module_not_found="Pretendo Network Patch fehlgeschlagen - nutze Aroma Updater zum Reparieren (686-1001 Module missing)"
 ,.module_init_not_found="Pretendo Network Patch fehlgeschlagen - nutze Aroma Updater zum Reparieren (686-1002 Module init)"
+,.language_name="Deutsch"

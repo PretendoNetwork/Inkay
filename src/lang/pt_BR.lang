@@ -11,3 +11,4 @@
 ,.multiplayer_port_display="Usando UDP port %hu para a jogatina multiplayer"
 ,.module_not_found="Atualização do Pretendo falhou - use o Aroma Updater para corrigir (686-1001 Módulo faltando)"
 ,.module_init_not_found="Atualização do Pretendo falhou - use o Aroma Updater para corrigir (686-1002 Módulo de início)"
+,.language_name="Português"

@@ -11,3 +11,4 @@
 ,.multiplayer_port_display="È in uso la porta UDP %hu per il multigiocatore"
 ,.module_not_found="Patch Pretendo Network fallita - usa Aroma Updater per riparare (686-1001 Modulo mancante)"
 ,.module_init_not_found="Patch Pretendo Network fallita - usa Aroma Updater per riparare (686-1002 Module init)"
+,.language_name="Italiano"

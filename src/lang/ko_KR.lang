@@ -11,3 +11,4 @@
 ,.multiplayer_port_display="멀티플레이어에 UDP 포트 %hu을(를) 사용합니다"
 ,.module_not_found="패치를 적용하는 데 실패했습니다. Aroma Updater로 복구해 주세요. (686-1001 모듈 없음)"
 ,.module_init_not_found="패치를 적용하는 데 실패했습니다. Aroma Updater로 복구해 주세요. (686-1002 모듈 초기화)"
+,.language_name="한국어"

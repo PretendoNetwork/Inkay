@@ -11,3 +11,4 @@
 ,.multiplayer_port_display="使用 UDP 端口 %hu 進行多人遊戲"
 ,.module_not_found="Pretendo Network 補丁失敗 - 請使用 Aroma Updater 修復（缺少 686-1001 模組）"
 ,.module_init_not_found="Pretendo Network 補丁失敗 - 請使用 Aroma Updater 修復（缺少 686-1002 模組）"
+,.language_name="中文（繁體）"

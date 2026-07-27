@@ -11,3 +11,4 @@
 ,.multiplayer_port_display="Gebruikt UDP port %hu voor multiplayer"
 ,.module_not_found="Pretendo patch mislukt - gebruik Aroma Updater om het te herstellen (686-1001 Module ontbreekt)"
 ,.module_init_not_found="Pretendo-Netwerk patch mislukt - gebruik Aroma Updater om het te herstellen (686-1002 Module init)"
+,.language_name="Nederlands"

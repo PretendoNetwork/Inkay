@@ -56,67 +56,63 @@ static void report_storage_error(WUPSStorageError err) {
     DEBUG_FUNCTION_LINE_VERBOSE("WUPS storage error: %s", WUPSStorageAPI_GetStatusStr(err));
 }
 
-static void connect_to_network_changed(ConfigItemBoolean* item, bool new_value) {
+static void connect_to_network_changed(ConfigItemBoolean *item, bool new_value) {
     DEBUG_FUNCTION_LINE_VERBOSE("connect_to_network changed to: %d", new_value);
     if (new_value != Config::connect_to_network) {
         Config::need_relaunch = true;
     }
     Config::connect_to_network = new_value;
 
-    WUPSStorageError res;
-    res = WUPSStorageAPI::Store<bool>("connect_to_network", Config::connect_to_network);
+    WUPSStorageError res = WUPSStorageAPI_StoreBool(nullptr, "connect_to_network", Config::connect_to_network);
     if (res != WUPS_STORAGE_ERROR_SUCCESS) return report_storage_error(res);
 }
 
-static void language_changed(ConfigItemMultipleValues* item, uint32_t new_value) {
+static void language_changed(ConfigItemMultipleValues *item, uint32_t new_value) {
     DEBUG_FUNCTION_LINE_VERBOSE("language changed to: %d", new_value);
     if (new_value != Config::language) {
         if (new_value == inkay_language::System)
-            Config::current_language = (inkay_language)get_system_language();
+            Config::current_language = (inkay_language) get_system_language();
         else
-            Config::current_language = (inkay_language)new_value;
+            Config::current_language = (inkay_language) new_value;
     }
     Config::language = new_value;
 
-    WUPSStorageError res;
-    res = WUPSStorageAPI::Store<int>("language", Config::language);
+    WUPSStorageError res = WUPSStorageAPI_StoreU32(nullptr, "language", Config::language);
     if (res != WUPS_STORAGE_ERROR_SUCCESS) return report_storage_error(res);
 }
 
-static void show_startup_toast_changed(ConfigItemBoolean* item, bool new_value) {
+static void show_startup_toast_changed(ConfigItemBoolean *item, bool new_value) {
     DEBUG_FUNCTION_LINE_VERBOSE("show_startup_toast changed to: %d", new_value);
     Config::show_startup_toast = new_value;
 
-    WUPSStorageError res;
-    res = WUPSStorageAPI::Store<bool>("show_startup_toast", Config::show_startup_toast);
+    WUPSStorageError res = WUPSStorageAPI_StoreBool(nullptr, "show_startup_toast", Config::show_startup_toast);
     if (res != WUPS_STORAGE_ERROR_SUCCESS) return report_storage_error(res);
 }
 
 static void unregister_task_item_on_input_cb(void *context, WUPSConfigSimplePadData input) {
-    if (!Config::unregister_task_item_pressed && Config::is_wiiu_menu && ((input.buttons_d & WUPS_CONFIG_BUTTON_A) == WUPS_CONFIG_BUTTON_A)) {
-
+    if (!Config::unregister_task_item_pressed && Config::is_wiiu_menu && (
+            (input.buttons_d & WUPS_CONFIG_BUTTON_A) == WUPS_CONFIG_BUTTON_A)) {
         nn::act::Initialize();
         Initialize__Q2_2nn4bossFv();
 
-        for (uint8_t i = 1; i <= nn::act::GetNumOfAccounts(); i++)
-        {
-            if (nn::act::IsSlotOccupied(i) && nn::act::IsNetworkAccountEx(i))
-            {
-              nn::boss::Task task{};
-              nn::act::PersistentId persistentId = nn::act::GetPersistentIdEx(i);
+        for (uint8_t i = 1; i <= nn::act::GetNumOfAccounts(); i++) {
+            if (nn::act::IsSlotOccupied(i) && nn::act::IsNetworkAccountEx(i)) {
+                nn::boss::Task task{};
+                nn::act::PersistentId persistentId = nn::act::GetPersistentIdEx(i);
 
-              __ct__Q3_2nn4boss4TaskFv(&task);
-              Initialize__Q3_2nn4boss4TaskFPCcUi(&task, "oltopic", persistentId);
+                __ct__Q3_2nn4boss4TaskFv(&task);
+                Initialize__Q3_2nn4boss4TaskFPCcUi(&task, "oltopic", persistentId);
 
-      // bypasses compiler warning about unused variable
-      #ifdef DEBUG
-              uint32_t res = Unregister__Q3_2nn4boss4TaskFv(&task);
-              DEBUG_FUNCTION_LINE_VERBOSE("Unregistered oltopic for: SlotNo %d | Persistent ID %08x -> 0x%08x", i, persistentId, res);
-      #else
-              Unregister__Q3_2nn4boss4TaskFv(&task);
-      #endif
-          }
-      }
+                // bypasses compiler warning about unused variable
+#ifdef DEBUG
+                uint32_t res = Unregister__Q3_2nn4boss4TaskFv(&task);
+                DEBUG_FUNCTION_LINE_VERBOSE("Unregistered oltopic for: SlotNo %d | Persistent ID %08x -> 0x%08x", i,
+                                            persistentId, res);
+#else
+                Unregister__Q3_2nn4boss4TaskFv(&task);
+#endif
+            }
+        }
 
         Finalize__Q2_2nn4bossFv();
         nn::act::Finalize();
@@ -136,16 +132,15 @@ static int32_t unregister_task_item_get_display_value(void *context, char *out_b
         }
     }
 
-    if ((int)string.length() > out_size - 1) return -1;
+    if ((int) string.length() > out_size - 1) return -1;
     string.copy(out_buf, string.length());
     out_buf[string.length()] = '\0';
 
     return 0;
 }
 
-static WUPSConfigAPICallbackStatus ConfigMenuOpenedCallback(WUPSConfigCategoryHandle rootHandle) {
+static WUPSConfigAPICallbackStatus ConfigMenuOpenedCallback(WUPSConfigCategoryHandle root_cat) {
     WUPSConfigAPIStatus err;
-    bool res;
 
     uint64_t current_title_id = OSGetTitleID();
     uint64_t wiiu_menu_tid = _SYSGetSystemApplicationTitleId(SYSTEM_APP_ID_WII_U_MENU);
@@ -154,101 +149,124 @@ static WUPSConfigAPICallbackStatus ConfigMenuOpenedCallback(WUPSConfigCategoryHa
     // get translation strings
     strings = get_config_strings(Config::current_language);
 
-    // create root config category
-    WUPSConfigCategory root = WUPSConfigCategory(rootHandle);
+    // Network submenu
+    //    Connect to Pretendo Network        Yes/No
+    //    Using UDP port 5000 for multiplayer
 
-    auto network_cat = WUPSConfigCategory::Create(strings.network_category, err);
-    if (!network_cat) return report_error(err);
+    WUPSConfigCategoryHandle network_cat;
+    err = WUPSConfigAPI_Category_Create({strings.network_category.data()}, &network_cat);
+    if (err != WUPSCONFIG_API_RESULT_SUCCESS) return report_error(err);
 
-    //                                                  config id                   display name            default        current value             changed callback
-    auto connect_item = WUPSConfigItemBoolean::Create("connect_to_network", strings.connect_to_network_setting, true, Config::connect_to_network, &connect_to_network_changed, err);
-    if (!connect_item) return report_error(err);
+    WUPSConfigItemHandle connect_item;
+    err = WUPSConfigItemBoolean_CreateEx(
+        "connect_to_network", strings.connect_to_network_setting.data(), true, Config::connect_to_network,
+        &connect_to_network_changed, strings.setting_yes.data(), strings.setting_no.data(), &connect_item);
+    if (err != WUPSCONFIG_API_RESULT_SUCCESS) return report_error(err);
 
-    res = network_cat->add(std::move(*connect_item), err);
-    if (!res) return report_error(err);
+    err = WUPSConfigAPI_Category_AddItem(network_cat, connect_item);
+    if (err != WUPSCONFIG_API_RESULT_SUCCESS) return report_error(err);
 
-    {
-        uint16_t port = get_console_peertopeer_port();
-        char buffer[256];
-        snprintf(buffer, sizeof(buffer), strings.multiplayer_port_display.data(), port);
-        auto multiplayer_port_display = WUPSConfigItemStub::Create(buffer, err);
-        if (!multiplayer_port_display) return report_error(err);
+    const uint16_t port = get_console_peertopeer_port();
+    char buffer[256];
+    snprintf(buffer, sizeof(buffer), strings.multiplayer_port_display.data(), port);
 
-        res = network_cat->add(std::move(*multiplayer_port_display), err);
-        if (!res) return report_error(err);
-    }
+    WUPSConfigItemHandle multiplayer_port_display;
+    err = WUPSConfigItemStub_Create(buffer, &multiplayer_port_display);
+    if (err != WUPSCONFIG_API_RESULT_SUCCESS) return report_error(err);
 
-    res = root.add(std::move(*network_cat), err);
-    if (!res) return report_error(err);
+    err = WUPSConfigAPI_Category_AddItem(network_cat, multiplayer_port_display);
+    if (err != WUPSCONFIG_API_RESULT_SUCCESS) return report_error(err);
 
-    auto other_cat = WUPSConfigCategory::Create(strings.other_category, err);
-    if (!other_cat) return report_error(err);
+    // Add to root and finish
+    err = WUPSConfigAPI_Category_AddCategory(root_cat, network_cat);
+    if (err != WUPSCONFIG_API_RESULT_SUCCESS) return report_error(err);
 
-    auto startup_toast_item = WUPSConfigItemBoolean::Create("show_startup_toast", strings.show_startup_toast_setting, true, Config::show_startup_toast, &show_startup_toast_changed, err);
-    if (!startup_toast_item) return report_error(err);
+    // Other category
+    //    Reset Wara Wara Plaza  Press A
+    //    Language               English/Spanish/etc..
+    //    Show startup toast     Yes/No
 
-    WUPSConfigAPIItemCallbacksV2 unregisterTasksItemCallbacks = {
-            .getCurrentValueDisplay = unregister_task_item_get_display_value,
-            .getCurrentValueSelectedDisplay = unregister_task_item_get_display_value,
-            .onSelected = nullptr,
-            .restoreDefault = nullptr,
-            .isMovementAllowed = nullptr,
-            .onCloseCallback = nullptr,
-            .onInput = unregister_task_item_on_input_cb,
-            .onInputEx = nullptr,
-            .onDelete = nullptr
-    };
-
-    WUPSConfigAPIItemOptionsV2 unregisterTasksItemOptions = {
-            .displayName = strings.reset_wwp_setting.data(),
-            .context = nullptr,
-            .callbacks = unregisterTasksItemCallbacks,
-    };
+    WUPSConfigCategoryHandle other_cat;
+    err = WUPSConfigAPI_Category_Create({strings.other_category.data()}, &other_cat);
+    if (err != WUPSCONFIG_API_RESULT_SUCCESS) return report_error(err);
 
     WUPSConfigItemHandle unregisterTasksItem;
-    err = WUPSConfigAPI_Item_Create(unregisterTasksItemOptions, &unregisterTasksItem);
+    err = WUPSConfigAPI_Item_Create({
+                                        .displayName = strings.reset_wwp_setting.data(),
+                                        .context = nullptr,
+                                        .callbacks = {
+                                            .getCurrentValueDisplay = unregister_task_item_get_display_value,
+                                            .getCurrentValueSelectedDisplay = unregister_task_item_get_display_value,
+                                            .onSelected = nullptr,
+                                            .restoreDefault = nullptr,
+                                            .isMovementAllowed = nullptr,
+                                            .onCloseCallback = nullptr,
+                                            .onInput = unregister_task_item_on_input_cb,
+                                            .onInputEx = nullptr,
+                                            .onDelete = nullptr
+                                        },
+                                    }, &unregisterTasksItem);
     if (err != WUPSCONFIG_API_RESULT_SUCCESS) return report_error(err);
 
-    err = WUPSConfigAPI_Category_AddItem(other_cat->getHandle(), unregisterTasksItem);
+    err = WUPSConfigAPI_Category_AddItem(other_cat, unregisterTasksItem);
     if (err != WUPSCONFIG_API_RESULT_SUCCESS) return report_error(err);
 
-    constexpr WUPSConfigItemMultipleValues::ValuePair languages[] = {
-        {0, "Japanese"},
-        {1, "English"},
-        {2, "French"},
-        {3, "German"},
-        {4, "Italian"},
-        {5, "Spanish"},
-        {6, "Simplified Chinese"},
-        {7, "Korean"},
-        {8, "Dutch"},
-        {9, "Portuguese"},
-        {10, "Russian"},
-        {11, "Traditional Chinese"},
-        {13, "System"},
-        {14, "English (UwU)"},
+    // TODO localise these!
+    constexpr std::array<ConfigItemMultipleValuesPair, 14> languages = {
+        {
+            {0, "Japanese"},
+            {1, "English"},
+            {2, "French"},
+            {3, "German"},
+            {4, "Italian"},
+            {5, "Spanish"},
+            {6, "Simplified Chinese"},
+            {7, "Korean"},
+            {8, "Dutch"},
+            {9, "Portuguese"},
+            {10, "Russian"},
+            {11, "Traditional Chinese"},
+            {13, "System"},
+            {14, "English (UwU)"},
+        }
     };
 
-    auto language_item = WUPSConfigItemMultipleValues::CreateFromValue("language", "Language", 13, Config::language, languages, &language_changed, err);
-    if (!language_item) return report_error(err);
+    constexpr auto find_lang = [languages](const uint32_t lang) -> int {
+        return std::ranges::find_if(languages, [lang](auto const l) { return l.value == lang; }) -
+               std::begin(languages);
+    };
+    constexpr int system_language = find_lang(13 /* System */);
+    const int current_language = find_lang(Config::language);
 
-    res = other_cat->add(std::move(*language_item), err);
-    if (!res) return report_error(err);
+    WUPSConfigItemHandle language_item;
+    err = WUPSConfigItemMultipleValues_Create("language", strings.language_setting.data(), system_language,
+                                              current_language,
+                                              const_cast<ConfigItemMultipleValuesPair *>(languages.data()), // Yikes!
+                                              languages.size(), &language_changed, &language_item);
+    if (err != WUPSCONFIG_API_RESULT_SUCCESS) return report_error(err);
 
-    res = other_cat->add(std::move(*startup_toast_item), err);
-    if (!res) return report_error(err);
+    err = WUPSConfigAPI_Category_AddItem(other_cat, language_item);
+    if (err != WUPSCONFIG_API_RESULT_SUCCESS) return report_error(err);
 
+    WUPSConfigItemHandle startup_toast_item;
+    err = WUPSConfigItemBoolean_CreateEx("show_startup_toast", strings.show_startup_toast_setting.data(), true,
+                                         Config::show_startup_toast, &show_startup_toast_changed,
+                                         strings.setting_yes.data(), strings.setting_no.data(), &startup_toast_item);
+    if (err != WUPSCONFIG_API_RESULT_SUCCESS) return report_error(err);
 
-    res = root.add(std::move(*other_cat), err);
-    if (!res) return report_error(err);
+    err = WUPSConfigAPI_Category_AddItem(other_cat, startup_toast_item);
+    if (err != WUPSCONFIG_API_RESULT_SUCCESS) return report_error(err);
+
+    // finish up
+    err = WUPSConfigAPI_Category_AddCategory(root_cat, other_cat);
+    if (err != WUPSCONFIG_API_RESULT_SUCCESS) return report_error(err);
 
     return WUPSCONFIG_API_CALLBACK_RESULT_SUCCESS;
 }
 
 static void ConfigMenuClosedCallback() {
     // Save all changes
-    WUPSStorageError res;
-    res = WUPSStorageAPI::SaveStorage();
+    WUPSStorageError res = WUPSStorageAPI_SaveStorage(false);
     if (res != WUPS_STORAGE_ERROR_SUCCESS) return report_storage_error(res);
 
     if (Config::need_relaunch) {
@@ -260,59 +278,54 @@ static void ConfigMenuClosedCallback() {
 }
 
 void Config::Init() {
-    WUPSConfigAPIStatus cres;
-
     // Init the config api
-    WUPSConfigAPIOptionsV1 configOptions = { .name = "Inkay" };
-    cres = WUPSConfigAPI_Init(configOptions, ConfigMenuOpenedCallback, ConfigMenuClosedCallback);
-    if (cres != WUPSCONFIG_API_RESULT_SUCCESS) return (void)report_error(cres);
+    WUPSConfigAPIStatus cres =
+            WUPSConfigAPI_Init({.name = "Inkay"}, ConfigMenuOpenedCallback, ConfigMenuClosedCallback);
+    if (cres != WUPSCONFIG_API_RESULT_SUCCESS) return (void) report_error(cres);
 
     WUPSStorageError res;
     // Try to get values from storage
-    res = WUPSStorageAPI::Get<bool>("connect_to_network", Config::connect_to_network);
+    res = WUPSStorageAPI_GetBool(nullptr, "connect_to_network", &Config::connect_to_network);
     if (res == WUPS_STORAGE_ERROR_NOT_FOUND) {
-        DEBUG_FUNCTION_LINE("Connect to network value not found, attempting to migrate/create");
+        DEBUG_FUNCTION_LINE_VERBOSE("Connect to network value not found, attempting to migrate/create");
 
         bool skipPatches = false;
-        if (WUPSStorageAPI::Get<bool>("skipPatches", skipPatches) == WUPS_STORAGE_ERROR_SUCCESS) {
+        if (WUPSStorageAPI_GetBool(nullptr, "skipPatches", &skipPatches) == WUPS_STORAGE_ERROR_SUCCESS) {
             // Migrate old config value
             Config::connect_to_network = !skipPatches;
-            WUPSStorageAPI::DeleteItem("skipPatches");
+            WUPSStorageAPI_DeleteItem(nullptr, "skipPatches");
         }
-    
-        // Add the value to the storage if it's missing.
-        res = WUPSStorageAPI::Store<bool>("connect_to_network", connect_to_network);
-        if (res != WUPS_STORAGE_ERROR_SUCCESS) return report_storage_error(res);
-    }
-    else if (res != WUPS_STORAGE_ERROR_SUCCESS) return report_storage_error(res);
 
-    res = WUPSStorageAPI::Get<uint32_t>("language", Config::language);
+        // Add the value to the storage if it's missing.
+        res = WUPSStorageAPI_StoreBool(nullptr, "connect_to_network", connect_to_network);
+        if (res != WUPS_STORAGE_ERROR_SUCCESS) return report_storage_error(res);
+    } else if (res != WUPS_STORAGE_ERROR_SUCCESS) return report_storage_error(res);
+
+    res = WUPSStorageAPI_GetU32(nullptr, "language", &Config::language);
     if (res == WUPS_STORAGE_ERROR_NOT_FOUND) {
-        DEBUG_FUNCTION_LINE("Language value not found, attempting to create");
+        DEBUG_FUNCTION_LINE_VERBOSE("Language value not found, attempting to create");
 
         // Add the value to the storage.
-        res = WUPSStorageAPI::Store<uint32_t>("language", Config::language);
+        res = WUPSStorageAPI_StoreU32(nullptr, "language", Config::language);
         if (res != WUPS_STORAGE_ERROR_SUCCESS) return report_storage_error(res);
-    }
-    else if (res != WUPS_STORAGE_ERROR_SUCCESS) return report_storage_error(res);
-  
-    res = WUPSStorageAPI::Get<bool>("show_startup_toast", Config::show_startup_toast);
+    } else if (res != WUPS_STORAGE_ERROR_SUCCESS) return report_storage_error(res);
+
+    res = WUPSStorageAPI_GetBool(nullptr, "show_startup_toast", &Config::show_startup_toast);
     if (res == WUPS_STORAGE_ERROR_NOT_FOUND) {
-        DEBUG_FUNCTION_LINE("Show startup toast value not found, attempting to create");
-    
+        DEBUG_FUNCTION_LINE_VERBOSE("Show startup toast value not found, attempting to create");
+
         // Add the value to the storage if it's missing.
-        res = WUPSStorageAPI::Store<bool>("show_startup_toast", show_startup_toast);
+        res = WUPSStorageAPI_StoreBool(nullptr, "show_startup_toast", show_startup_toast);
         if (res != WUPS_STORAGE_ERROR_SUCCESS) return report_storage_error(res);
-    }
-    else if (res != WUPS_STORAGE_ERROR_SUCCESS) return report_storage_error(res);
+    } else if (res != WUPS_STORAGE_ERROR_SUCCESS) return report_storage_error(res);
 
     // Set the language that's currently used
     if (Config::language == inkay_language::System)
-        Config::current_language = (inkay_language)get_system_language();
+        Config::current_language = (inkay_language) get_system_language();
     else
-        Config::current_language = (inkay_language)Config::language;
+        Config::current_language = (inkay_language) Config::language;
 
     // Save storage
-    res = WUPSStorageAPI::SaveStorage();
+    res = WUPSStorageAPI_SaveStorage(false);
     if (res != WUPS_STORAGE_ERROR_SUCCESS) return report_storage_error(res);
 }

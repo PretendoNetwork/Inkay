@@ -1,5 +1,3 @@
-
-
 .plugin_name="Inky ^w^"
 ,.network_category="Newowk sewectiown! :3"
 ,.connect_to_network_setting="use dah pretender!!!!"
@@ -13,3 +11,7 @@
 ,.multiplayer_port_display="mah secret word is %hu... ur modem will know"
 ,.module_not_found="oh noez! pls get aroma updater help :( (686-1001 Module missing)"
 ,.module_init_not_found="oh noez! pls get aroma updater help :( (686-1002 Module init)"
+,.setting_yes="yaah!"
+,.setting_no="nu >w<"
+,.language_name="kitteh speak!!"
+,.system_language="System"

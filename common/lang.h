@@ -37,6 +37,11 @@ struct config_strings {
     std::string_view multiplayer_port_display;
     std::string_view module_not_found;
     std::string_view module_init_not_found;
+    std::string_view setting_yes;
+    std::string_view setting_no;
+    std::string_view language_setting;
+    std::string_view language_name;
+    std::string_view system_language;
 };
 
 config_strings get_config_strings(inkay_language language);

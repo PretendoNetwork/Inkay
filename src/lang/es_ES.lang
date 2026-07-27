@@ -11,3 +11,4 @@
 ,.multiplayer_port_display="Usando puerto UDP %hu para multijugador"
 ,.module_not_found="Ha fallado el parche Pretendo Network - usa Aroma Updater para repararlo (686-1001 Falta un módulo)"
 ,.module_init_not_found="Ha fallado el parche Pretendo Network - usa Aroma Updater para repararlo (686-1002 Inicialización del módulo)"
+,.language_name="Español"

@@ -12,3 +12,8 @@
 ,.multiplayer_port_display="Using UDP port %hu for multiplayer"
 ,.module_not_found="Pretendo Network patch failed - use Aroma Updater to repair (686-1001 Module missing)"
 ,.module_init_not_found="Pretendo Network patch failed - use Aroma Updater to repair (686-1002 Module init)"
+,.setting_yes="Yes"
+,.setting_no="No"
+,.language_setting="Language"
+,.language_name="English"
+,.system_language="System"
