@@ -53,7 +53,7 @@ nn::swkbd::LanguageType get_system_language() {
         return nn::swkbd::LanguageType::English;
     }
 
-    DEBUG_FUNCTION_LINE_VERBOSE("System language found: %d", language);
+    DEBUG_FUNCTION_LINE_VERBOSE("System language found: %d", static_cast<int>(language));
     cached_language = language;
     return language;
 }
@@ -80,7 +80,7 @@ static void get_mcp_config() {
     mcp_os_version = os_version;
 
     DEBUG_FUNCTION_LINE_VERBOSE("Running on %d.%d.%d%c; %s%s",
-                                os_version.major, os_version.minor, os_version.patch, os_version.region
+                                os_version.major, os_version.minor, os_version.patch, os_version.region,
                                         config.code_id, config.serial_id
     );
 }

@@ -38,7 +38,7 @@ WUPS_PLUGIN_LICENSE("GPLv3");
 WUPS_USE_STORAGE("inkay");
 
 INITIALIZE_PLUGIN() {
-    WHBLogModuleInit();
+    WHBLogCafeInit();
 
     Config::Init();
 
@@ -54,7 +54,7 @@ DEINITIALIZE_PLUGIN() {
     Inkay_Finalize();
     NotificationModule_DeInitLibrary();
 
-    WHBLogModuleDeinit();
+    WHBLogCafeDeinit();
 }
 
 ON_APPLICATION_START() {

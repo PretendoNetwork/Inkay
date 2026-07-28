@@ -85,7 +85,6 @@ bool replace_unsigned(U *addr, U original_value, U new_value) {
     );
     DCFlushRange(addr, sizeof(new_value));
 
-    DEBUG_FUNCTION_LINE_VERBOSE("%08x is now %08x", inst, *inst);
     return *addr == new_value;
 }
 template bool replace_unsigned<uint64_t>(uint64_t *, uint64_t, uint64_t);
