@@ -47,8 +47,8 @@ bool Config::is_wiiu_menu = false;
 uint32_t Config::language = 13;
 inkay_language Config::current_language = English;
 
-static WUPSConfigAPICallbackStatus report_error(WUPSConfigAPIStatus err) {
-    DEBUG_FUNCTION_LINE_VERBOSE("WUPS config error: %s", WUPSConfigAPI_GetStatusStr(err));
+static WUPSConfigAPICallbackStatus report_error(WUPSConfigAPIStatus err, int line) {
+    DEBUG_FUNCTION_LINE_VERBOSE("WUPS config error: %s (L%04d)", WUPSConfigAPI_GetStatusStr(err), line);
     return WUPSCONFIG_API_CALLBACK_RESULT_ERROR;
 }
 
@@ -155,16 +155,16 @@ static WUPSConfigAPICallbackStatus ConfigMenuOpenedCallback(WUPSConfigCategoryHa
 
     WUPSConfigCategoryHandle network_cat;
     err = WUPSConfigAPI_Category_Create({strings.network_category.data()}, &network_cat);
-    if (err != WUPSCONFIG_API_RESULT_SUCCESS) return report_error(err);
+    if (err != WUPSCONFIG_API_RESULT_SUCCESS) return report_error(err, __LINE__);
 
     WUPSConfigItemHandle connect_item;
     err = WUPSConfigItemBoolean_CreateEx(
         "connect_to_network", strings.connect_to_network_setting.data(), true, Config::connect_to_network,
         &connect_to_network_changed, strings.setting_yes.data(), strings.setting_no.data(), &connect_item);
-    if (err != WUPSCONFIG_API_RESULT_SUCCESS) return report_error(err);
+    if (err != WUPSCONFIG_API_RESULT_SUCCESS) return report_error(err, __LINE__);
 
     err = WUPSConfigAPI_Category_AddItem(network_cat, connect_item);
-    if (err != WUPSCONFIG_API_RESULT_SUCCESS) return report_error(err);
+    if (err != WUPSCONFIG_API_RESULT_SUCCESS) return report_error(err, __LINE__);
 
     const uint16_t port = get_console_peertopeer_port();
     char buffer[256];
@@ -172,14 +172,14 @@ static WUPSConfigAPICallbackStatus ConfigMenuOpenedCallback(WUPSConfigCategoryHa
 
     WUPSConfigItemHandle multiplayer_port_display;
     err = WUPSConfigItemStub_Create(buffer, &multiplayer_port_display);
-    if (err != WUPSCONFIG_API_RESULT_SUCCESS) return report_error(err);
+    if (err != WUPSCONFIG_API_RESULT_SUCCESS) return report_error(err, __LINE__);
 
     err = WUPSConfigAPI_Category_AddItem(network_cat, multiplayer_port_display);
-    if (err != WUPSCONFIG_API_RESULT_SUCCESS) return report_error(err);
+    if (err != WUPSCONFIG_API_RESULT_SUCCESS) return report_error(err, __LINE__);
 
     // Add to root and finish
     err = WUPSConfigAPI_Category_AddCategory(root_cat, network_cat);
-    if (err != WUPSCONFIG_API_RESULT_SUCCESS) return report_error(err);
+    if (err != WUPSCONFIG_API_RESULT_SUCCESS) return report_error(err, __LINE__);
 
     // Other category
     //    Reset Wara Wara Plaza  Press A
@@ -188,7 +188,7 @@ static WUPSConfigAPICallbackStatus ConfigMenuOpenedCallback(WUPSConfigCategoryHa
 
     WUPSConfigCategoryHandle other_cat;
     err = WUPSConfigAPI_Category_Create({strings.other_category.data()}, &other_cat);
-    if (err != WUPSCONFIG_API_RESULT_SUCCESS) return report_error(err);
+    if (err != WUPSCONFIG_API_RESULT_SUCCESS) return report_error(err, __LINE__);
 
     WUPSConfigItemHandle unregisterTasksItem;
     err = WUPSConfigAPI_Item_Create({
@@ -206,10 +206,10 @@ static WUPSConfigAPICallbackStatus ConfigMenuOpenedCallback(WUPSConfigCategoryHa
                                             .onDelete = nullptr
                                         },
                                     }, &unregisterTasksItem);
-    if (err != WUPSCONFIG_API_RESULT_SUCCESS) return report_error(err);
+    if (err != WUPSCONFIG_API_RESULT_SUCCESS) return report_error(err, __LINE__);
 
     err = WUPSConfigAPI_Category_AddItem(other_cat, unregisterTasksItem);
-    if (err != WUPSCONFIG_API_RESULT_SUCCESS) return report_error(err);
+    if (err != WUPSCONFIG_API_RESULT_SUCCESS) return report_error(err, __LINE__);
 
     // TODO localise these!
     constexpr std::array<ConfigItemMultipleValuesPair, 14> languages = {
@@ -243,23 +243,23 @@ static WUPSConfigAPICallbackStatus ConfigMenuOpenedCallback(WUPSConfigCategoryHa
                                               current_language,
                                               const_cast<ConfigItemMultipleValuesPair *>(languages.data()), // Yikes!
                                               languages.size(), &language_changed, &language_item);
-    if (err != WUPSCONFIG_API_RESULT_SUCCESS) return report_error(err);
+    if (err != WUPSCONFIG_API_RESULT_SUCCESS) return report_error(err, __LINE__);
 
     err = WUPSConfigAPI_Category_AddItem(other_cat, language_item);
-    if (err != WUPSCONFIG_API_RESULT_SUCCESS) return report_error(err);
+    if (err != WUPSCONFIG_API_RESULT_SUCCESS) return report_error(err, __LINE__);
 
     WUPSConfigItemHandle startup_toast_item;
     err = WUPSConfigItemBoolean_CreateEx("show_startup_toast", strings.show_startup_toast_setting.data(), true,
                                          Config::show_startup_toast, &show_startup_toast_changed,
                                          strings.setting_yes.data(), strings.setting_no.data(), &startup_toast_item);
-    if (err != WUPSCONFIG_API_RESULT_SUCCESS) return report_error(err);
+    if (err != WUPSCONFIG_API_RESULT_SUCCESS) return report_error(err, __LINE__);
 
     err = WUPSConfigAPI_Category_AddItem(other_cat, startup_toast_item);
-    if (err != WUPSCONFIG_API_RESULT_SUCCESS) return report_error(err);
+    if (err != WUPSCONFIG_API_RESULT_SUCCESS) return report_error(err, __LINE__);
 
     // finish up
     err = WUPSConfigAPI_Category_AddCategory(root_cat, other_cat);
-    if (err != WUPSCONFIG_API_RESULT_SUCCESS) return report_error(err);
+    if (err != WUPSCONFIG_API_RESULT_SUCCESS) return report_error(err, __LINE__);
 
     return WUPSCONFIG_API_CALLBACK_RESULT_SUCCESS;
 }
@@ -281,7 +281,7 @@ void Config::Init() {
     // Init the config api
     WUPSConfigAPIStatus cres =
             WUPSConfigAPI_Init({.name = "Inkay"}, ConfigMenuOpenedCallback, ConfigMenuClosedCallback);
-    if (cres != WUPSCONFIG_API_RESULT_SUCCESS) return (void) report_error(cres);
+    if (cres != WUPSCONFIG_API_RESULT_SUCCESS) return (void) report_error(cres, __LINE__);
 
     WUPSStorageError res;
     // Try to get values from storage
