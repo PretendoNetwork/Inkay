@@ -21,9 +21,9 @@ WUT_ROOT := $(DEVKITPRO)/wut
 #-------------------------------------------------------------------------------
 TARGET		:=	Inkay-pretendo
 BUILD		:=	build
-SOURCES		:=	src src/patches src/utils src/ext/inih common
+SOURCES		:=	src src/patches src/utils src/ext/inih src/ext/libplum/src common
 DATA		:=	data
-INCLUDES	:=	src src/ext/inih src/lang common
+INCLUDES	:=	src src/ext/inih src/ext/libplum/include/plum src/lang common
 
 #-------------------------------------------------------------------------------
 # options for code generation

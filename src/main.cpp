@@ -23,6 +23,7 @@
 #include "patches/olv_urls.h"
 #include "patches/game_matchmaking.h"
 
+#include <plum.h>
 #include <wums.h>
 
 #include <coreinit/dynload.h>
@@ -189,6 +190,12 @@ WUMS_INITIALIZE() {
     if (NotificationModule_InitLibrary() != NOTIFICATION_MODULE_RESULT_SUCCESS) {
         DEBUG_FUNCTION_LINE("NotificationModule_InitLibrary failed");
     }
+
+    const plum_config_t plum_config = {
+        .log_level = PLUM_LOG_LEVEL_VERBOSE,
+        .log_callback = [](const plum_log_level_t level, const char *message) { DEBUG_FUNCTION_LINE("[PLUM-%d] %s", level, message) },
+    };
+    plum_init(&plum_config);
 }
 
 WUMS_DEINITIALIZE() {
@@ -201,6 +208,8 @@ WUMS_DEINITIALIZE() {
     Mocha_DeInitLibrary();
     NotificationModule_DeInitLibrary();
     FunctionPatcher_DeInitLibrary();
+
+    plum_cleanup();
 
     WHBLogCafeDeinit();
     WHBLogUdpDeinit();
@@ -237,6 +246,7 @@ WUMS_ALL_APPLICATION_STARTS_DONE() {
 }
 
 WUMS_APPLICATION_ENDS() {
+    peertopeer_notify_titleswitch();
 }
 
 WUMS_EXPORT_FUNCTION(Inkay_Initialize);

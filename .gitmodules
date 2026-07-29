@@ -1,0 +1,3 @@
+[submodule "src/ext/libplum"]
+	path = src/ext/libplum
+	url = https://github.com/PretendoNetwork/libplum

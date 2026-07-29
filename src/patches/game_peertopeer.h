@@ -14,3 +14,4 @@
 #pragma once
 
 void peertopeer_patch();
+void peertopeer_notify_titleswitch();

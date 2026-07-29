@@ -13,6 +13,7 @@
 
 #include <coreinit/title.h>
 #include <coreinit/dynload.h>
+#include <plum.h>
 #include "game_peertopeer.h"
 
 #include "config.h"
@@ -25,6 +26,31 @@
 #include <algorithm>
 #include <string_view>
 using namespace std::string_view_literals;
+
+static std::optional<int> upnp_id;
+
+static void upnp_cb(int id, plum_state_t state, const plum_mapping_t *mapping) {
+    DEBUG_FUNCTION_LINE("Plum result %d, %s:%hu", state, mapping->external_host, mapping->external_port);
+}
+
+static void upnp_go() {
+    const plum_mapping_t mapping = {
+        .protocol = PLUM_IP_PROTOCOL_UDP,
+        .internal_port = get_console_peertopeer_port(),
+        .user_ptr = nullptr,
+    };
+    int id = plum_create_mapping(&mapping, upnp_cb);
+    if (id < 0) return;
+
+    upnp_id = id;
+}
+
+static void upnp_stop() {
+    if (!upnp_id) return;
+
+    plum_destroy_mapping(*upnp_id);
+    upnp_id = std::nullopt;
+}
 
 static struct {
     std::array<uint64_t, 3> tid;
@@ -51,24 +77,25 @@ static struct {
     },
 };
 
-static void generic_peertopeer_patch() {
+static bool generic_peertopeer_patch() {
     uint64_t tid = OSGetTitleID();
     uint16_t title_version = 0;
     if (const auto version_opt = get_current_title_version(); !version_opt) {
         DEBUG_FUNCTION_LINE("Failed to detect current title version");
-        return;
+        return false;
     } else {
         title_version = *version_opt;
         DEBUG_FUNCTION_LINE("Title version detected: %d", title_version);
     }
 
+    bool result = false;
     for (const auto &patch: generic_patch_games) {
         if (std::ranges::find(patch.tid, tid) == patch.tid.end()) continue;
 
         std::optional<OSDynLoad_NotifyData> game = search_for_rpl(patch.rpx);
         if (!game) {
             DEBUG_FUNCTION_LINE("Couldn't find game rpx! (%s)", patch.rpx.data());
-            return;
+            return false;
         }
 
         if (title_version != patch.version) {
@@ -85,19 +112,23 @@ static void generic_peertopeer_patch() {
 
         target = (uint16_t *)rpl_addr(*game, patch.max_port_addr);
         replace_unsigned<uint16_t>(target, 0xffff, port);
+
+        result = true;
         break;
     }
+
+    return result;
 }
 
-static void minecraft_peertopeer_patch() {
+static bool minecraft_peertopeer_patch() {
     std::optional<OSDynLoad_NotifyData> minecraft = search_for_rpl("Minecraft.Client.rpx"sv);
     if (!minecraft) {
         DEBUG_FUNCTION_LINE("Couldn't find minecraft rpx!");
-        return;
+        return false;
     }
     if (const auto version_opt = get_current_title_version(); !version_opt || *version_opt != 688) {
         DEBUG_FUNCTION_LINE("Wrong mincecraft version detected");
-        return;
+        return false;
     }
 
     auto port = get_console_peertopeer_port();
@@ -112,6 +143,8 @@ static void minecraft_peertopeer_patch() {
     replace_instruction(&target_func[0], 0x3c600001, 0x3c600000);        // li r3, 0
     replace_instruction(&target_func[1], 0x3863ffff, 0x60630000 | port); // ori r3, r3, port
     // blr
+
+    return true;
 }
 
 void peertopeer_patch() {
@@ -119,13 +152,21 @@ void peertopeer_patch() {
         return;
     }
 
-    uint64_t tid = OSGetTitleID();
+    bool patched;
+    const uint64_t tid = OSGetTitleID();
     if (tid == 0x00050000'101D7500 || // EUR
         tid == 0x00050000'101D9D00 || // USA
         tid == 0x00050000'101DBE00) { // JPN
 
-        minecraft_peertopeer_patch();
+        patched = minecraft_peertopeer_patch();
     } else {
-        generic_peertopeer_patch();
+        patched = generic_peertopeer_patch();
     }
+
+    if (patched)
+        upnp_go();
+}
+
+void peertopeer_notify_titleswitch() {
+    upnp_stop();
 }
