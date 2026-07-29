@@ -34,6 +34,7 @@ constexpr std::pair<const char *, const char *> dns_replacements[] = {
 
 static const char * replace_dns_name(const char *dns_name) {
     if (!Config::connect_to_network) return dns_name;
+    if (!dns_name) return dns_name;
 
     for (auto [original, replacement] : dns_replacements) {
         if (strcmp(original, dns_name) == 0)
