@@ -10,7 +10,7 @@
 ,.using_nintendo_network="Réseau sélectionné : Nintendo Network"
 ,.using_pretendo_network="Réseau sélectionné : Pretendo Network"
 ,.multiplayer_port_display="Le port UDP %hu sera utilisé pour le multijoueur"
-,.module_not_found="Le patch Pretendo Network a rencontré un problème, veuillez le réparer avec Aroma Updater (686-1001 Module missing)"
+,.module_not_found="Le patch Pretendo Network a rencontré un problème, veuillez le réparer avec Aroma Updater (686-1001 Module introuvable)"
 ,.module_init_not_found="Le patch Pretendo Network a rencontré un problème, veuillez le réparer avec Aroma Updater (686-1002 Module init)"
 ,.setting_yes="Oui"
 ,.setting_no="Non"
