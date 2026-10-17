@@ -1,7 +1,7 @@
 .plugin_name="Inkay"
 ,.network_category="Sélection du réseau"
 ,.connect_to_network_setting="Connexion au Pretendo Network"
-,.show_startup_toast_setting=""
+,.show_startup_toast_setting="Montrer le toast de démarrage"
 ,.other_category="Autres paramètres"
 ,.reset_wwp_setting="Réinitialiser la place WaraWara"
 ,.press_a_action="Appuyez sur A"
