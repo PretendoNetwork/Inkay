@@ -1,6 +1,6 @@
 .plugin_name="Inkay"
 ,.network_category="ネットワークの選択"
-,.connect_to_network_setting="Pretendoネットワークに接続する"
+,.connect_to_network_setting="Pretendoネットワークに接続"
 ,.show_startup_toast_setting=""
 ,.other_category="その他の設定"
 ,.reset_wwp_setting="わらわら広場をリセット"
